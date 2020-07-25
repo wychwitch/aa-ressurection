@@ -5,5 +5,7 @@
 Goals for rewrite:
 
 * Make Bot Function
-* Remove some of the redundant json/text files
+* Reduce json bloat (unused files, files that can be combined with others, etc)
+  * Also rename the json files so they make sense. Im looking at you dicti that should be quotes.json
 * Rewrite bot in a way that future possible upgrades might be better (put the code that touches discord in their own functions?? hmmm not sure about this one m8)
+
