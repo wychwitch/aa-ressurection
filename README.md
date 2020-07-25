@@ -2,6 +2,8 @@
 
 [Migrating to 1.0 documentation](https://discordpy.readthedocs.io/en/latest/migrating.html)
 
+[trello board](https://trello.com/b/RB1hQnvS/aradia-resurrection)
+
 Goals for rewrite:
 
 * Make Bot Function
