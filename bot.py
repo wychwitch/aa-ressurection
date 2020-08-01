@@ -60,10 +60,34 @@ async def on_ready():
 async def test(ctx):
     await discordPrint(ctx, "testt aaaa")
 
+#might be too clunky but i figured could be used for 90% of channel-response commands
 async def discordPrint(ctx, str):
     await ctx.send(str)
 
-bot.run(config["token"])
+async def send_dm(member: discord.Member, content):
+    channel = await member.create_dm()
+    await channel.send(content)
 
-#might be too clunky but i figured could be used for 90% of channel-response commands
+@bot.event
+async def on_message(message):
+    await check_pings(bot, message)
+    await bot.process_commands(message)
+
+async def check_pings(bot, message):
+    global pings_dict
+    lower_text = message.content.lower()
+    for user_id, ping_triggers in pings_dict.items():
+        print("for loop")
+        trigger_regexes = ["\\b"+trigger+"\\b" for trigger in ping_triggers]
+        if any([re.search(trigger_regex, lower_text) for trigger_regex in trigger_regexes]):
+            print("first if")
+            #having problems with this V 
+            user = discord.utils.find(lambda m: m.id == user_id, message.channel.guild.members)
+            # ping only if user exists or has read permissions
+            print("user =="+str(user))
+            if (user and message.channel.permissions_for(user).read_messages):
+                print("second if")
+                await send_dm(user,"#{}: <{}> {}".format(message.channel, message.author.name, message.content))
+
+bot.run(config["token"])
 
