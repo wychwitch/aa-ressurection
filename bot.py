@@ -54,7 +54,7 @@ async def bot_quit(ctx):
 
 @bot.event
 async def on_ready():
-    print(f"QuoteBot v{VERSION} " + 'We have logged in as {0.user}'.format(bot))
+    print(f"QuoteBot v{VERSION} " + f'We have logged in as {bot.user}')
 
 @bot.command()
 async def test(ctx):
