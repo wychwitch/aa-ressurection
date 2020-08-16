@@ -513,14 +513,14 @@ https://github.com/cameronleong/guesstheword
 """
 
 class AZGame:
-    poke_list_url = "http://pastebin.com/h0PrSMGt"
+    poke_list_url = "https://pastebin.com/tmqw0xns"
     def __init__(self, string):
         if string is "az":
-            wordlist = "az_words.txt"
+            wordlist = "json/az_words.txt"
             wordlistlines = 115810                  
         elif string is "poke":
-            wordlist = "pokemon.txt"
-            wordlistlines = 721
+            wordlist = "json/pokemon.txt"
+            wordlistlines = 893
         #number of lines in the wordlist you're using
         linenumber = random.randint(1, wordlistlines)       
         #pick a random line number

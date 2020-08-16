@@ -104,6 +104,7 @@ async def quote(ctx):
             return
         await ctx.channel.send(quotes[emptykey])
 
+
 @quote.command(name="add", aliases=["new", "create" "a"])
 async def quote_new(ctx,name, *, body: str):
     global quotes
@@ -172,7 +173,7 @@ async def db_number(ctx):
     global quotes
     await ctx.channel.send("There are " + str(quotes["num"]) + " quotes in the database")
 
-@quote.command(name="rain", aliases=["r"])
+@quote.command(name="rain")
 async def quote_rain(ctx,n: int = 5):
     output_str = ""
     global quotes
@@ -180,6 +181,133 @@ async def quote_rain(ctx,n: int = 5):
         random_index = random.randrange(0, quotes["num"])
         output_str += quotes[str(random_index)] + "\n"
     await ctx.channel.send(output_str)
+
+#Remove command group, serving mostly as a warning
+@quote.group(name="remove", pass_context=True)
+async def remove(ctx):
+    if ctx.invoked_subcommand is None:
+        await ctx.channel.send("use Latest to remove the last added quote")
+    global quotes
+    qnum = quotes["num"]
+    qstr = quotes[str(quotes["num"])]
+    del quotes[str(quotes["num"])]
+    quotes["num"] = quotes["num"] - 1
+    update_db(quotes, "quotes.json")
+    await ctx.channel.send(f"quote number {qnum} was removed")
+"""
+ _______    ______________________      __ 
+ \      \  /   _____/\_   _____/  \    /  
+ /   |   \ \_____  \  |    __) \   \/\/   /
+/    |    \/        \ |     \   \        / 
+\____|__  /_______  / \___  /    \__/\  /  
+        \/        \/      \/          \/ 
+"""
+
+@bot.group(aliases=["nsfw"], pass_context=True)
+async def nsfwQuote(ctx):
+    """nsfwQuotes!
+
+    Running the command without any arguments will display a random nsfwQuote.
+    """
+    if ctx.invoked_subcommand is None:
+        try:
+            print("before random choice")
+            emptykey = random.choice(list(nsfwQuotes.keys()))
+            print("after random choice")
+        except IndexError:
+            await ctx.channel.send("There are no nsfwQuotes.")
+            return
+        await ctx.channel.send(nsfwQuotes[emptykey])
+
+
+@nsfwQuote.command(name="add", aliases=["new", "create" "a"])
+async def nsfwQuote_new(ctx,name, *, body: str):
+    global nsfwQuotes
+    print("okay the bare bones worked")
+    """Add a new nsfwQuote."""
+    nsfwQuote_body = f"<{name}> {body}"
+    print("this is before the first if")
+    if nsfwQuote_body not in nsfwQuotes.values():
+        print("before num")
+        nsfwQuotes["num"] = nsfwQuotes["num"] + 1
+        nsfwQuote_body = str(nsfwQuotes["num"]) + ": " + nsfwQuote_body
+        print("before dict add")
+        nsfwQuotes[str(nsfwQuotes["num"])] = nsfwQuote_body
+        update_db(nsfwQuotes, "nsfwQuotes.json")
+        print("num update worked")
+        await ctx.channel.send("nsfwQuote " + str(nsfwQuotes["num"]) + " added.")
+    else:
+        await ctx.channel.send("That nsfwQuote already exists.")
+
+@nsfwQuote.command(name="get", aliases=["g"])
+async def nsfwQuote_get(ctx,qnum: str):
+    if qnum in nsfwQuotes.keys():
+        await ctx.channel.send(nsfwQuotes[qnum])
+    else:
+        await ctx.channel.send("couldn't find nsfwQuote")
+
+@nsfwQuote.command(name="find", aliases=["search", "f"])
+async def nsfwQuote_find(ctx,*, found: str):
+    print("before foundNsfwQuotes")
+    foundNsfwQuotes = []
+    print("after found nsfwQuotes summoning")
+    for (qnum, nsfwQuote) in nsfwQuotes.items():
+        if (found in nsfwQuote):
+            foundNsfwQuotes.append(qnum)
+            print("after every loop")
+    if len(foundNsfwQuotes) == 0:
+           await ctx.channel.send("couldn't find anything")
+           print("after it failed to find anythin")
+    elif len(foundNsfwQuotes) == 1:
+           await ctx.channel.send(nsfwQuotes[foundNsfwQuotes[0]])
+    elif len(foundNsfwQuotes) > 1 and len(foundNsfwQuotes) <= 10:
+           await ctx.channel.send(quotes[foundNsfwQuotes[0]] + " " + "Also found in the following nsfwQuotes" + " " + ", ".join(foundNsfwQuotes[1:11]))
+    elif len(foundNsfwQuotes) > 10:
+           await ctx.channel.send(nsfwQuotes[foundNsfwQuotes[0]] + " " + "Also found in the following nsfwQuotes" + " " + ", ".join(foundNsfwQuotes[1:11]) + " and many more....")
+           print (nsfwQuotes[foundNsfwQuotes[0]] )
+
+
+@nsfwQuote.command(name="edit", aliases=["e"])
+async def nsfwQuote_edit(ctx,n, name, *, body: str):
+   new_nsfwQuote_body = f"<{name}> {body}"
+   foundNsfwQuote = False
+   print("before for loop")
+   for qnum in nsfwQuotes.keys():
+       if (n is qnum and n != "num"):
+        foundNsfwQuote = True
+
+        new_nsfwQuote_body = str(n) + ": " + new_nsfwQuote_body
+        nsfwQuotes[str(n)] = new_nsfwQuote_body
+        update_db(nsfwQuotes, "nsfwQuotes.json")
+        await ctx.channel.send("The nsfwQuote was sucessfully edited")
+   if (foundNsfwQuote == False):
+        await ctx.channel.send("couldnt find nsfwQuote to edit")
+
+@nsfwQuote.command(name="number", aliases=["num"])
+async def nsfwdb_number(ctx):
+    global nsfwQuotes
+    await ctx.channel.send("There are " + str(nsfwQuotes["num"]) + " nsfwQuotes in the database")
+
+@nsfwQuote.command(name="rain")
+async def nsfwQuote_rain(ctx,n: int = 5):
+    output_str = ""
+    global nsfwQuotes
+    for i in range(n):
+        random_index = random.randrange(0, nsfwQuotes["num"])
+        output_str += nsfwQuotes[str(random_index)] + "\n"
+    await ctx.channel.send(output_str)
+
+#Remove command group, serving mostly as a warning
+@nsfwQuote.group(name="remove", pass_context=True)
+async def nsfwRemove(ctx):
+    global nsfwQuotes
+    qnum = nsfwQuotes["num"]
+    deletedQuote = nsfwQuotes[str(nsfwQuotes["num"])]
+    del nsfwQuotes[str(nsfwQuotes["num"])]
+    nsfwQuotes["num"] = nsfwQuotes["num"] - 1
+    update_db(nsfwQuotes, "nsfwQuotes.json")
+    await ctx.channel.send(f"The Quote {deletedQuote} was removed")
+
 
 
 
