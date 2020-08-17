@@ -408,11 +408,11 @@ async def update_az_game(bot, message):
     # if the answer is correct, update scores and end the game
     if (guess == az_game.answer):
         player_score = await add_score(message.author)
-        await message.channel.send(message.channel, "The answer was {answer}. {player} wins! {player} has won {wins} times.".format(answer=az_game.answer, player=message.author.name, wins=player_score))
+        await message.channel.send( "The answer was {answer}. {player} wins! {player} has won {wins} times.".format(answer=az_game.answer, player=message.author.name, wins=player_score))
         if "poke" in az_game.wordlist:
-            await message.channel.send(message.channel, 'http://bulbapedia.bulbagarden.net/wiki/'+az_game.answer)
+            await message.channel.send('http://bulbapedia.bulbagarden.net/wiki/'+az_game.answer)
         else:
-            await message.channel.send(message.channel, "http://www.merriam-webster.com/dictionary/" + az_game.answer)
+            await message.channel.send("http://www.merriam-webster.com/dictionary/" + az_game.answer)
         az_game = None
     # if the answer is not correct but is a word, update the range
     elif await check_string(guess) and az_game.left < guess and az_game.right > guess:
@@ -420,7 +420,7 @@ async def update_az_game(bot, message):
             az_game.left = guess
         else:
             az_game.right = guess
-        await message.channel.send(message.channel, 'Your range is: {} --- {}'.format(az_game.left, az_game.right))
+        await message.channel.send( 'Your range is: {} --- {}'.format(az_game.left, az_game.right))
 
 async def check_string(w):
     global az_game
@@ -471,6 +471,14 @@ async def add_score(user):
         az_scores[user.id] = 1
     update_db(az_scores, "az_scores.json")
     return az_scores[user.id]
+
+
+
+
+
+
+
+
 
 
 
