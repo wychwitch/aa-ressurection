@@ -70,6 +70,14 @@ async def send_dm(member: discord.Member, content):
 
 @bot.event
 async def on_message(message):
+    if message.author == bot.user:
+           # we do not want the bot to reply to itself
+        return
+    if az_game != None:
+        print("there IS a game")
+        if (' ' not in message.content.strip()):
+            print("this IS testing if message works")
+            await update_az_game(bot,message)
     await check_pings(bot, message)
     await bot.process_commands(message)
 
@@ -193,7 +201,7 @@ async def remove(ctx):
     del quotes[str(quotes["num"])]
     quotes["num"] = quotes["num"] - 1
     update_db(quotes, "quotes.json")
-    await ctx.channel.send(f"quote number {qnum} was removed")
+    await ctx.channel.send(f"quote \"{qstr}\" was removed")
 """
  _______    ______________________      __ 
  \      \  /   _____/\_   _____/  \    /  
@@ -301,13 +309,168 @@ async def nsfwQuote_rain(ctx,n: int = 5):
 @nsfwQuote.group(name="remove", pass_context=True)
 async def nsfwRemove(ctx):
     global nsfwQuotes
-    qnum = nsfwQuotes["num"]
     deletedQuote = nsfwQuotes[str(nsfwQuotes["num"])]
     del nsfwQuotes[str(nsfwQuotes["num"])]
     nsfwQuotes["num"] = nsfwQuotes["num"] - 1
     update_db(nsfwQuotes, "nsfwQuotes.json")
-    await ctx.channel.send(f"The Quote {deletedQuote} was removed")
+    await ctx.channel.send(f"The Quote \"{deletedQuote}\" was removed")
 
+"""
+     _              _____         ____      _      __  __   _____ 
+    / \            |__  /        / ___|    / \    |  \/  | | ____|
+   / _ \    _____    / /        | |  _    / _ \   | |\/| | |  _|  
+  / ___ \  |_____|  / /_        | |_| |  / ___ \  | |  | | | |___ 
+ /_/   \_\         /____|        \____| /_/   \_\ |_|  |_| |_____|
+                                                                  
+
+Cannibalized from: 
+https://github.com/cameronleong/guesstheword
+
+"""
+
+
+class AZGame:
+    poke_list_url = "https://pastebin.com/tmqw0xns"
+    def __init__(self, string):
+        if string == "az":
+            wordlist = "json/az_words.txt"
+            wordlistlines = 115810                  
+        elif string == "poke":
+            wordlist = "json/pokemon.txt"
+            wordlistlines = 893
+        #number of lines in the wordlist you're using
+        linenumber = random.randint(1, wordlistlines)       
+        #pick a random line number
+        az_word = linecache.getline(wordlist, linenumber).strip()  
+        #linecache lets you pull a single line instead of the entire file
+        print("AZ Game answer " + az_word)
+        self.answer = az_word.strip()
+        self.left = linecache.getline(wordlist, 1).strip()
+        self.right = linecache.getline(wordlist, wordlistlines).strip()
+        self.wordlist = wordlist
+        self.wordlistlines = wordlistlines
+
+@bot.group(pass_context = True)
+async def az(ctx):
+    global az_game
+    if ctx.invoked_subcommand is None:
+        if (az_game):
+            await ctx.channel.send("Your range is: {} --- {}".format(az_game.left, az_game.right))
+        else: 
+            await ctx.channel.send("Starting an az game")
+            az_game = AZGame("az")
+            await ctx.channel.send("Your range is: {} --- {}".format(az_game.left, az_game.right))
+
+@az.command(name="poke", aliases=['pk'])
+async def az_poke(ctx):
+    global az_game
+    if az_game is not None:
+        await ctx.channel.send("You have an az game going. Your range is: {} --- {}".format(az_game.left, az_game.right))
+    else:
+        az_game = AZGame("poke")
+        await ctx.channel.send("Your range is: {} --- {}".format(az_game.left, az_game.right))
+    
+
+@az.command(name="help")
+async def az_help(ctx):
+    await ctx.send("""`!az` starts a new game or lists the range
+`!az abc` will list out the alphabet
+`!az end` will end the current game
+`!az top` will list the 3 top winners
+`!az scores [@users]` will list the wins of the mentioned users""")
+
+@az.command(name="abc", description="say the alphabet")
+async def az_abc(ctx):
+    await ctx.send('a b c d e f g h i j k l m n o p q r s t u v w x y z')
+
+@az.command(name="end", description="end the current game")
+async def az_end(ctx):
+    global az_game
+    if (az_game):
+        await ctx.channel.send("Now closing az game, the answer was " + az_game.answer)
+        if "poke" in az_game.wordlist:
+            await ctx.channel.send('http://bulbapedia.bulbagarden.net/wiki/'+az_game.answer)
+        else:
+            await ctx.channel.send('http://www.merriam-webster.com/dictionary/'+az_game.answer)
+        
+        az_game = None
+    else:
+        await ctx.channel.send("There is no ongoing game")
+    
+# called in the on_message event
+async def update_az_game(bot, message):
+    global az_game
+    # az game ignores messages with multiple words/has spaces
+    if (not az_game or ' ' in message.content.strip()):
+        return
+
+    guess = message.content.strip().lower()
+    # if the answer is correct, update scores and end the game
+    if (guess == az_game.answer):
+        player_score = await add_score(message.author)
+        await message.channel.send(message.channel, "The answer was {answer}. {player} wins! {player} has won {wins} times.".format(answer=az_game.answer, player=message.author.name, wins=player_score))
+        if "poke" in az_game.wordlist:
+            await message.channel.send(message.channel, 'http://bulbapedia.bulbagarden.net/wiki/'+az_game.answer)
+        else:
+            await message.channel.send(message.channel, "http://www.merriam-webster.com/dictionary/" + az_game.answer)
+        az_game = None
+    # if the answer is not correct but is a word, update the range
+    elif await check_string(guess) and az_game.left < guess and az_game.right > guess:
+        if guess < az_game.answer:
+            az_game.left = guess
+        else:
+            az_game.right = guess
+        await message.channel.send(message.channel, 'Your range is: {} --- {}'.format(az_game.left, az_game.right))
+
+async def check_string(w):
+    global az_game
+    if (' ' not in w):                  
+        with open(az_game.wordlist) as f:
+            #print('Iterating...')
+            for line in f:                  
+                if w.strip().lower() == line.strip().lower():
+                    #print(line)
+                    return True
+    return False
+
+          
+@az.command(name = "top", pass_context = True, description="list the top three player of az")
+async def az_top(ctx):
+    global az_scores
+    scoreStr= "\n         :star: Top 3 Players :star: \n\n"
+    top_players = sorted(az_scores, key=az_scores.get, reverse=True)[:3]
+    #print(top_players)
+    for rank, top_player in enumerate(top_players):
+        #print(scoreStr)
+        player = discord.utils.find(lambda m: m.id == int(top_player), ctx.message.channel.server.members)
+        if (player):
+            scoreStr += " :military_medal:  #{}: {} won {} times\n".format(rank+1, player.name, az_scores[top_player])
+    await ctx.channel.send(scoreStr)
+
+@az.command(name = "score", pass_context = True, description="give the numberof times someone has beat the game")  
+async def az_score(ctx, *, msg:str):
+    global az_scores
+    scoreStr = ""
+    sorted_mentions = sorted(ctx.message.mentions, key=lambda x: x.name.lower())
+    #print(", ".join([m.name for m in sorted_mentions]))
+    for player in sorted_mentions:
+        if player.id in az_scores:
+            scoreStr+="{} - {} wins\n".format(player.name, az_scores[player.id])
+        else:
+            scoreStr+="{} - 0 wins\n".format(player.name)
+    await ctx.channel.send(scoreStr)            
+
+@az.command(name="pokelist", description="the list of pokemon the bot uses")
+async def az_pokelist(ctx):
+    await ctx.channel.send(AZGame.poke_list_url)
+
+async def add_score(user):
+    if user.id in az_scores:
+        az_scores[user.id] += 1
+    else:
+        az_scores[user.id] = 1
+    update_db(az_scores, "az_scores.json")
+    return az_scores[user.id]
 
 
 
