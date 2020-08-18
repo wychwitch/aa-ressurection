@@ -33,6 +33,14 @@ with open("json/az_scores.json") as az_scores_file:
 
 # AZ Game - no point in keeping a file for this
 az_game = None
+
+undercutGame = None
+
+undercutMode = "uc"
+
+ucUsers = []
+
+playersSubmitted = 0
     
 # Helper command to update the database
 def update_db(database, filename):
@@ -73,6 +81,13 @@ async def on_message(message):
     if message.author == bot.user:
            # we do not want the bot to reply to itself
         return
+    
+    if undercutGame != None:
+        print("there IS an undercut")
+        if (' ' not in message.content.strip()):
+            print("this IS testing if message works")
+            await update_uc_game(bot,message)
+
     if az_game != None:
         print("there IS a game")
         if (' ' not in message.content.strip()):
@@ -383,7 +398,7 @@ async def az_help(ctx):
 async def az_abc(ctx):
     await ctx.send('a b c d e f g h i j k l m n o p q r s t u v w x y z')
 
-@az.command(name="end", description="end the current game")
+@az.command(name="end", description="end the current game", alias="quit")
 async def az_end(ctx):
     global az_game
     if (az_game):
@@ -473,6 +488,177 @@ async def add_score(user):
     return az_scores[user.id]
 
 
+
+
+##UNDERCUT
+
+class UCPlayer:
+    def __init__(self):
+        self.points = 0
+        self.lastNum = 0
+        self.numCombo = 1
+            
+    def setPoints(self, points):
+        self.points += points
+
+class UnderCutGame:
+    mode = ""
+    def __init__(self, mode, user1, user2):
+        self.mode = mode
+        self.user1 = user1
+        self.user2 = user2
+        self.player1 = UCPlayer()
+        self.player2 = UCPlayer()
+        self.players = {user1 : self.player1, user2 : self.player2}
+        self.playerSubmit = {user1 : 0, user2 : 0}
+        self.game = True
+        self.gameWon = False
+
+    def calculate_points(self):
+        points1 = self.playerSubmit[self.user1]
+        points2 = self.playerSubmit[self.user2]
+        self.playerSubmit[self.user1] = 0
+        self.playerSubmit[self.user2] = 0
+
+        returnString = ""
+
+        if self.mode == "uc":
+            if points1 != points2 - 1 and points1 != points2 + 1:
+                self.players[self.user1].setPoints(points1)
+                self.players[self.user2].setPoints(points2)
+                returnString = f"{self.user1} gained {points1} points \n{self.user2} gained {points2} points"
+            elif points1 > points2:
+                self.players[self.user2].setPoints(points1 + points2)
+                returnString = f"**UNDERCUT!!**\n{self.user2} gained {points2 + points1} points ({points1} stolen)"
+            else:
+                self.players[self.user1].setPoints(points1 + points2)
+                returnString = f"**UNDERCUT!!**\n{self.user1} gained {points2 + points1} points ({points2} stolen)"
+        
+        elif self.mode == "flaunt":
+            if self.players[self.user1].lastNum == points1:
+                self.players[self.user1].numCombo += 1
+            else:
+                self.players[self.user1].numCombo = 1
+                self.players[self.user1].lastNum = points1
+                
+            if self.players[self.user2].lastNum == points2:
+                self.players[self.user2].numCombo += 1
+            else:
+                self.players[self.user2].numCombo = 1
+                self.players[self.user2].lastNum = points2
+            
+            adjustedPoiints1 = points1 * self.players[self.user1].numCombo
+            adjustedPoiints2 = points2 * self.players[self.user2].numCombo
+            if points1 != points2 - 1 and points1 != points2 + 1:
+                
+                self.players[self.user1].setPoints(adjustedPoiints1)
+                self.players[self.user2].setPoints(adjustedPoiints2)
+                returnString = f"{self.user1} gained {adjustedPoiints1} points ({points1}x{self.players[self.user1].numCombo}) \n{self.user2} gained {adjustedPoiints2} points ({points2}x{self.players[self.user2].numCombo}) "
+            
+            elif points1 > points2:
+                self.players[self.user2].setPoints(adjustedPoiints2 + adjustedPoiints1)
+                returnString = f"**UNDERCUT!!**\n {self.user2} gained {adjustedPoiints2 + adjustedPoiints1}points ({points2}x{self.players[self.user2].numCombo}) + ({points1}x{self.players[self.user1].numCombo}
+ stolen)"
+                self.players[self.user1].numCombo = 1
+            
+            else:
+                self.players[self.user1].setPoints(adjustedPoiints2 + adjustedPoiints1)
+                returnString = f"**UNDERCUT!!**\n {self.user1} gained {adjustedPoiints2+adjustedPoiints1} points ({points1}x{self.players[self.user1].numCombo}) + ({points2}x{self.players[self.user2].numCombo} stolen)"
+                self.players[self.user2].numCombo = 1
+        
+        self.checkIfWon()
+        returnString += "\n\n"+self.status()
+        if self.gameWon == True:
+            if self.players[self.user1].points > self.players[self.user2].points:
+                returnString += f"\n\n***{self.user1} WON***"
+            else:
+                returnString += f"\n\n***{self.user2} WON***"
+        return returnString
+
+    def status(self):
+        return f"@{self.user1}: {self.players[self.user1].points} points total\n@{self.user2}: {self.players[self.user2].points} points total"
+    def checkIfWon(self):
+        if self.players[self.user1].points >= 40 or self.players[self.user2].points >= 40:
+            self.gameWon = True
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    global undercutGame
+    global undercutMode
+    global ucUsers
+
+    if user == bot.user:
+           # we do not want the bot to reply to itself
+        return
+
+    if undercutGame == None and reaction.emoji == '👍':
+        if reaction.message.content == "Starting an undercut game. React to this message with 👍 to join!!":
+            ucUsers.append(user)
+            if len(ucUsers) == 2:
+                undercutGame = UnderCutGame(undercutMode, ucUsers[0], ucUsers[1])
+                await reaction.message.channel.send(f"**GAME: START**\n{undercutGame.status()}")
+        elif reaction.message.content =="Starting an undercut (FLAUNT) game. React to this message with 👍 to join!!":
+            ucUsers.append(user)
+            if len(ucUsers) == 2:
+                undercutGame = UnderCutGame(undercutMode, ucUsers[0], ucUsers[1])
+                await reaction.message.channel.send(f"**GAME: START**\n{undercutGame.status()}")
+
+
+@bot.group(alias="uc")
+async def undercut(ctx):
+    global undercutGame
+    if ctx.invoked_subcommand is None:
+        if (undercutGame):
+            await ctx.channel.send(f"Current scores:\n{undercutGame.user1}: {undercutGame.player1.points}\n{undercutGame.user2}: {undercutGame.player2.points}")
+        else: 
+            gameJoin = await ctx.channel.send("Starting an undercut game. React to this message with 👍 to join!!")
+            await gameJoin.add_reaction('👍')
+
+@undercut.command(name="flaunt", aliase="fl")
+async def ucFlaunt(ctx):
+    global undercutMode
+    global undercutGame
+    undercutMode = "flaunt"
+    
+    if ctx.invoked_subcommand is None:
+        if (undercutGame):
+            await ctx.channel.send(f"Current scores:\n{undercutGame.user1}: {undercutGame.player1.points}\n{undercutGame.user2}: {undercutGame.player2.points}")
+        else: 
+            gameJoin = await ctx.channel.send("Starting an undercut (FLAUNT) game. React to this message with 👍 to join!!")
+            await gameJoin.add_reaction('👍')
+
+async def update_uc_game(bot,message):
+    global undercutGame
+    global playersSubmitted
+    if (not undercutGame or ' ' in message.content.strip()):
+        return
+    
+    bargin = message.content.strip('|')
+    if bargin.isdigit():
+        if message.author in undercutGame.players.keys():
+            if int(bargin) >= 1 and int(bargin) <= 5:
+                if undercutGame.playerSubmit[message.author] == 0:
+                    undercutGame.playerSubmit[message.author] = int(bargin)
+                    await message.delete()
+                    playersSubmitted += 1
+                    await message.channel.send("Got your bargain!")
+                else:
+                    await message.channel.send("You already submitted!")
+            else:
+                await message.channel.send("Invalid number! Please type a number between 1 and 5")
+
+        else:
+            await message.channel.send("You aren't playing!")
+    if playersSubmitted == 2:
+        playersSubmitted = 0
+        await message.channel.send(undercutGame.calculate_points())
+    
+    if undercutGame.gameWon:
+        global ucUsers
+        await message.channel.send(f"GAME IS OVER...")
+        ucUsers = []
+        undercutGame = None
+        
 
 
 
