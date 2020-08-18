@@ -398,7 +398,7 @@ async def az_help(ctx):
 async def az_abc(ctx):
     await ctx.send('a b c d e f g h i j k l m n o p q r s t u v w x y z')
 
-@az.command(name="end", description="end the current game", alias="quit")
+@az.command(name="end", description="end the current game", aliases=["quit", "stop"])
 async def az_end(ctx):
     global az_game
     if (az_game):
@@ -557,13 +557,74 @@ class UnderCutGame:
             
             elif points1 > points2:
                 self.players[self.user2].setPoints(adjustedPoiints2 + adjustedPoiints1)
-                returnString = f"**UNDERCUT!!**\n {self.user2} gained {adjustedPoiints2 + adjustedPoiints1}points ({points2}x{self.players[self.user2].numCombo}) + ({points1}x{self.players[self.user1].numCombo}
- stolen)"
+                returnString = f"**UNDERCUT!!**\n {self.user2} gained {adjustedPoiints2 + adjustedPoiints1}points ({points2}x{self.players[self.user2].numCombo}) + ({points1}x{self.players[self.user1].numCombo} stolen)"
                 self.players[self.user1].numCombo = 1
             
             else:
                 self.players[self.user1].setPoints(adjustedPoiints2 + adjustedPoiints1)
                 returnString = f"**UNDERCUT!!**\n {self.user1} gained {adjustedPoiints2+adjustedPoiints1} points ({points1}x{self.players[self.user1].numCombo}) + ({points2}x{self.players[self.user2].numCombo} stolen)"
+                self.players[self.user2].numCombo = 1
+        
+        elif self.mode == "flaunt2":
+            if self.players[self.user1].lastNum == points1:
+                self.players[self.user1].numCombo += 1
+            else:
+                self.players[self.user1].numCombo = 1
+                self.players[self.user1].lastNum = points1
+                
+            if self.players[self.user2].lastNum == points2:
+                self.players[self.user2].numCombo += 1
+            else:
+                self.players[self.user2].numCombo = 1
+                self.players[self.user2].lastNum = points2
+            
+            adjustedPoiints1 = pow(points1,self.players[self.user1].numCombo)
+            adjustedPoiints2 = pow(points2, self.players[self.user2].numCombo) 
+            if points1 != points2 - 1 and points1 != points2 + 1:
+                
+                self.players[self.user1].setPoints(adjustedPoiints1)
+                self.players[self.user2].setPoints(adjustedPoiints2)
+                returnString = f"{self.user1} gained {adjustedPoiints1} points ({points1}^{self.players[self.user1].numCombo}) \n{self.user2} gained {adjustedPoiints2} points ({points2}^{self.players[self.user2].numCombo}) "
+            
+            elif points1 > points2:
+                self.players[self.user2].setPoints(adjustedPoiints2 + adjustedPoiints1)
+                returnString = f"**UNDERCUT!!**\n {self.user2} gained {adjustedPoiints2 + adjustedPoiints1}points ({points2}^{self.players[self.user2].numCombo}) + ({points1}^{self.players[self.user1].numCombo} stolen)"
+                self.players[self.user1].numCombo = 1
+            
+            else:
+                self.players[self.user1].setPoints(adjustedPoiints2 + adjustedPoiints1)
+                returnString = f"**UNDERCUT!!**\n {self.user1} gained {adjustedPoiints2+adjustedPoiints1} points ({points1}^{self.players[self.user1].numCombo}) + ({points2}^{self.players[self.user2].numCombo} stolen)"
+                self.players[self.user2].numCombo = 1
+        
+        elif self.mode == "flaunt3":
+            if self.players[self.user1].lastNum == points1:
+                self.players[self.user1].numCombo += 1
+            else:
+                self.players[self.user1].numCombo = 1
+                self.players[self.user1].lastNum = points1
+                
+            if self.players[self.user2].lastNum == points2:
+                self.players[self.user2].numCombo += 1
+            else:
+                self.players[self.user2].numCombo = 1
+                self.players[self.user2].lastNum = points2
+            
+            adjustedPoiints1 = points1 + self.players[self.user1].numCombo - 1
+            adjustedPoiints2 = points2 + self.players[self.user2].numCombo - 1
+            if points1 != points2 - 1 and points1 != points2 + 1:
+                
+                self.players[self.user1].setPoints(adjustedPoiints1)
+                self.players[self.user2].setPoints(adjustedPoiints2)
+                returnString = f"{self.user1} gained {adjustedPoiints1} points ({points1}+{self.players[self.user1].numCombo}) \n{self.user2} gained {adjustedPoiints2} points ({points2}+{self.players[self.user2].numCombo}) "
+            
+            elif points1 > points2:
+                self.players[self.user2].setPoints(adjustedPoiints2 + adjustedPoiints1)
+                returnString = f"**UNDERCUT!!**\n {self.user2} gained {adjustedPoiints2 + adjustedPoiints1}points ({points2}+{self.players[self.user2].numCombo}) + ({points1}+{self.players[self.user1].numCombo} stolen)"
+                self.players[self.user1].numCombo = 1
+            
+            else:
+                self.players[self.user1].setPoints(adjustedPoiints2 + adjustedPoiints1)
+                returnString = f"**UNDERCUT!!**\n {self.user1} gained {adjustedPoiints2+adjustedPoiints1} points ({points1}+{self.players[self.user1].numCombo}) + ({points2}+{self.players[self.user2].numCombo} stolen)"
                 self.players[self.user2].numCombo = 1
         
         self.checkIfWon()
@@ -591,20 +652,28 @@ async def on_reaction_add(reaction, user):
            # we do not want the bot to reply to itself
         return
 
-    if undercutGame == None and reaction.emoji == '👍':
-        if reaction.message.content == "Starting an undercut game. React to this message with 👍 to join!!":
-            ucUsers.append(user)
-            if len(ucUsers) == 2:
-                undercutGame = UnderCutGame(undercutMode, ucUsers[0], ucUsers[1])
-                await reaction.message.channel.send(f"**GAME: START**\n{undercutGame.status()}")
-        elif reaction.message.content =="Starting an undercut (FLAUNT) game. React to this message with 👍 to join!!":
+    if undercutGame == None and reaction.emoji == '👍' and reaction.message.author == bot.user:
+        if "undercut" in reaction.message.content:
             ucUsers.append(user)
             if len(ucUsers) == 2:
                 undercutGame = UnderCutGame(undercutMode, ucUsers[0], ucUsers[1])
                 await reaction.message.channel.send(f"**GAME: START**\n{undercutGame.status()}")
 
+@bot.event
+async def on_reaction_remove(reaction, user):
+    global undercutGame
+    global ucUsers
+    if user == bot.user:
+           # we do not want the bot to reply to itself
+        return
 
-@bot.group(alias="uc")
+    if undercutGame == None and reaction.emoji == '👍' and reaction.message.author == bot.user:
+        if "undercut" in reaction.message.content:
+            ucUsers.remove(user)
+            pass
+
+
+@bot.group(aliases=["uc"])
 async def undercut(ctx):
     global undercutGame
     if ctx.invoked_subcommand is None:
@@ -614,7 +683,7 @@ async def undercut(ctx):
             gameJoin = await ctx.channel.send("Starting an undercut game. React to this message with 👍 to join!!")
             await gameJoin.add_reaction('👍')
 
-@undercut.command(name="flaunt", aliase="fl")
+@undercut.command(name="flaunt", aliases=["fl"])
 async def ucFlaunt(ctx):
     global undercutMode
     global undercutGame
@@ -626,6 +695,57 @@ async def ucFlaunt(ctx):
         else: 
             gameJoin = await ctx.channel.send("Starting an undercut (FLAUNT) game. React to this message with 👍 to join!!")
             await gameJoin.add_reaction('👍')
+
+@undercut.command(name="flaunt2", aliases=["fl2"])
+async def ucFlaunt2(ctx):
+    global undercutMode
+    global undercutGame
+    undercutMode = "flaunt2"
+    
+    if ctx.invoked_subcommand is None:
+        if (undercutGame):
+            await ctx.channel.send(f"Current scores:\n{undercutGame.user1}: {undercutGame.player1.points}\n{undercutGame.user2}: {undercutGame.player2.points}")
+        else: 
+            gameJoin = await ctx.channel.send("Starting an undercut (FLAUNT 2) game. React to this message with 👍 to join!!")
+            await gameJoin.add_reaction('👍')
+
+@undercut.command(name="flaunt3", aliases=["fl3"])
+async def ucFlaunt3(ctx):
+    global undercutMode
+    global undercutGame
+    undercutMode = "flaunt3"
+    
+    if ctx.invoked_subcommand is None:
+        if (undercutGame):
+            await ctx.channel.send(f"Current scores:\n{undercutGame.user1}: {undercutGame.player1.points}\n{undercutGame.user2}: {undercutGame.player2.points}")
+        else: 
+            gameJoin = await ctx.channel.send("Starting an undercut (FLAUNT 3) game. React to this message with 👍 to join!!")
+            await gameJoin.add_reaction('👍')
+
+@undercut.command(name="end", aliases=["quit", "stop"])
+async def ucEnd(ctx):
+    global undercutGame
+    if undercutGame:
+        await ctx.send("Now closing Undercut game. Scores are \n" + undercutGame.status())
+        undercutGame = None
+    else:
+        await ctx.send("There isnt an ongoing undercut game")
+
+@undercut.command(name="help")
+async def uc_help(ctx):
+    await ctx.send("""`!undercut` starts a new game or lists the current scores
+`!undercut flaunt` will start a game with flaunt rules
+`!undercut flaunt2` will start a game with flaunt2 rules
+`!undercut flaunt3` will start a game with flaunt3 rules
+`!undercut end`  quits the currently running undercut game
+`!undercut rules` explains the rules bewteen the different modes""")
+
+@undercut.command(name="rules")
+async def uc_rules(ctx):
+    await ctx.send("""`undercut` basic game of undercut. Gamble points to earn and try to undercut your opponent's to steal their's instead.
+`flaunt` Same as above, but if you pick the same number multiple times in a row your points will be multiplied by the number of times you picked the same number
+`flaunt2` Same as above, but instead of it being multiplied it is brought to the power of your number combo. The 3rd time you gamble 2 you'll get 8 points for example.
+`flaunt3` same as above, but instead your number combo is added to your points. """)
 
 async def update_uc_game(bot,message):
     global undercutGame
