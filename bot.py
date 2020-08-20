@@ -158,8 +158,10 @@ async def quote_get(ctx,qnum: str):
 async def quote_find(ctx,*, found: str):
     print("before foundquotes")
     foundquotes = []
+    onlyQuotes = iter(quotes.items())
+    next(onlyQuotes)
     print("after found quotes summoning")
-    for (qnum, quote) in quotes.items():
+    for (qnum, quote) in onlyQuotes:
         if (found in quote):
             foundquotes.append(qnum)
             print("after every loop")
