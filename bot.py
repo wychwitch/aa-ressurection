@@ -10,6 +10,10 @@ from os import path
 
 VERSION = "2.0.0"
 
+# enabling intents
+intents = discord.Intents.default() 
+intents.members = True
+
 # Grab the config variables
 with open("json/config.json") as cfg:
     config = json.load(cfg)
@@ -51,7 +55,7 @@ description="""
 Basic quote bot.
 """
 
-bot = commands.Bot(commands.when_mentioned_or(config["prefix"]), description=description)
+bot = commands.Bot(commands.when_mentioned_or(config["prefix"]), intents=intents)
 
 @bot.command(name="quit")
 async def bot_quit(ctx):
@@ -62,7 +66,7 @@ async def bot_quit(ctx):
 
 @bot.event
 async def on_ready():
-    print(f"QuoteBot v{VERSION} " + f'We have logged in as {bot.user}')
+    print(f"Discord.py v {discord.__version__} \nQuoteBot v{VERSION} We have logged in as {bot.user}")
 
 @bot.command()
 async def test(ctx):
@@ -98,17 +102,28 @@ async def on_message(message):
 
 async def check_pings(bot, message):
     global pings_dict
+    print("client users:", bot.users)
+    print("Message text: ",message.content)
+    print("Message Channel Name: ",message.channel.name)
+
+    print("\n".join(["{}: {}".format(m.name, m.id) for m in message.channel.guild.members]))
+
+    print("\n second members check: ",message.channel.guild.members)
     lower_text = message.content.lower()
     for user_id, ping_triggers in pings_dict.items():
         trigger_regexes = ["\\b"+trigger+"\\b" for trigger in ping_triggers]
+
+        
         if any([re.search(trigger_regex, lower_text) for trigger_regex in trigger_regexes]):
-            print("first if")
-            #having problems with this V 
+            print("first if in check pings")
+            
+            # Making sure the user is even in the server
             user = discord.utils.find(lambda m: m.id == int(user_id), message.channel.guild.members)
-            # ping only if user exists or has read permissions
-            print("user =="+str(user))
+            print("user == "+str(user))
+
+            #ping only if user exists AND has read permissions AND is NOT the bot OR the person who is doing the pinging
             if (user and message.channel.permissions_for(user).read_messages and message.author != bot.user and message.author != user):
-                print("second if")
+                print("second if in check pings")
                 await send_dm(user,"#{}: <{}> {}".format(message.channel, message.author.name, message.content))
 
 @bot.group(aliases=["quotes", "q"], pass_context=True)
@@ -213,7 +228,6 @@ async def remove(ctx):
     if ctx.invoked_subcommand is None:
         await ctx.channel.send("use Latest to remove the last added quote")
     global quotes
-    qnum = quotes["num"]
     qstr = quotes[str(quotes["num"])]
     del quotes[str(quotes["num"])]
     quotes["num"] = quotes["num"] - 1
