@@ -102,28 +102,28 @@ async def on_message(message):
 
 async def check_pings(bot, message):
     global pings_dict
-    print("client users:", bot.users)
-    print("Message text: ",message.content)
-    print("Message Channel Name: ",message.channel.name)
+    #print("client users:", bot.users)
+    #print("Message text: ",message.content)
+    #print("Message Channel Name: ",message.channel.name)
 
-    print("\n".join(["{}: {}".format(m.name, m.id) for m in message.channel.guild.members]))
+    #print("\n".join(["{}: {}".format(m.name, m.id) for m in message.channel.guild.members]))
 
-    print("\n second members check: ",message.channel.guild.members)
+    #print("\n second members check: ",message.channel.guild.members)
     lower_text = message.content.lower()
     for user_id, ping_triggers in pings_dict.items():
         trigger_regexes = ["\\b"+trigger+"\\b" for trigger in ping_triggers]
 
         
         if any([re.search(trigger_regex, lower_text) for trigger_regex in trigger_regexes]):
-            print("first if in check pings")
+            #print("first if in check pings")
             
             # Making sure the user is even in the server
             user = discord.utils.find(lambda m: m.id == int(user_id), message.channel.guild.members)
-            print("user == "+str(user))
+            #print("user == "+str(user))
 
             #ping only if user exists AND has read permissions AND is NOT the bot OR the person who is doing the pinging
             if (user and message.channel.permissions_for(user).read_messages and message.author != bot.user and message.author != user):
-                print("second if in check pings")
+                #print("second if in check pings")
                 await send_dm(user,"#{}: <{}> {}".format(message.channel, message.author.name, message.content))
 
 @bot.group(aliases=["quotes", "q"], pass_context=True)
