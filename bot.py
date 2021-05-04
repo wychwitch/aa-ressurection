@@ -873,7 +873,7 @@ class blindPokemon:
     
 
 @bot.command(name="pokedraw", description="pokemon draw??")
-async def pokedraw(ctx, gen = None, time = 6):
+async def pokedraw(ctx, gen = None, time = 60):
 
     error = None
 
@@ -882,8 +882,12 @@ async def pokedraw(ctx, gen = None, time = 6):
         if(genParsed[1] and genParsed[0] > 0 and genParsed[0] < 9):
             gen = genParsed[0]
         else:
-            error = "Invalid Gen Number!"
+            if (gen.lower() == "a" or gen.lower() == "all" or gen.lower() == "any"):
+                gen = None
+            else:
+                error = "Invalid Gen Number!"
     timeParsed = intTryParse(time)
+    
     if(not timeParsed[1]):
         error = "Invalid time!"
     elif(timeParsed[0] > 4 and timeParsed[0] < 500):
