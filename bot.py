@@ -847,49 +847,82 @@ class blindPokemon:
         x = json.loads(data, object_hook=lambda d: SimpleNamespace(**d))
         return x
     #just check if [pokemon-name]-mega exists or not, and coinflip between them if it does
-    def __init__(self, gen = None, time = 5):
+    def __init__(self, gen, time):
         self.gen = gen
         self.time = time
         if (self.gen):
             difference = self.genList[self.gen - 1]["end"] - self.genList[self.gen - 1]["start"] + 1
 
             print(difference)
-            self.pokeRangeUrl = f'https://pokeapi.co/api/v2/pokemon?limit={difference}&offset={self.genList[self.gen - 1]["start"]}'
+            self.pokeRangeInt = (self.genList[self.gen - 1]["start"], self.genList[self.gen - 1]["end"]+1)
         else:
-            self.pokeRangeUrl =  f'https://pokeapi.co/api/v2/pokemon?limit=898'
+            self.pokeRangeInt = (0, 899)
         
-        pokeList = self.pokeParse(self.pokeRangeUrl)
-        i = random.randrange(0,len(pokeList.results) - 1)
+        i = random.randrange(self.pokeRangeInt[0], self.pokeRangeInt[1])
+        
+        self.pokemon = pokebase.pokemon(i)
+        #self.pokemon = pokebase.pokemon("meowth")
 
-        chosenPokemon = pokeList.results[i]
-
-        self.pokemon = pokebase.pokemon(chosenPokemon.name)
+        if(len(self.pokemon.species.varieties) > 1):
+            i = random.randint(0,len(self.pokemon.species.varieties)-1)
+            self.pokemon = pokebase.pokemon(self.pokemon.species.varieties[i].pokemon.name)
 
         self.img = pokebase.SpriteResource('pokemon', self.pokemon.id, other_sprites=True, official_artwork=True)
 
-        #print(self.img.url)
-
+        print(len(self.pokemon.species.varieties))
     
 
 @bot.command(name="pokedraw", description="pokemon draw??")
-async def pokedraw(ctx):
-    pokeBlind = blindPokemon()
-    second = pokeBlind.time
-    embedVar = discord.Embed(title=pokeBlind.pokemon.name, color=0x206694)
-    embedVar.add_field(name="timer", value=f"{second}", inline=False)
-    embedVar.set_image(url="https://i.imgur.com/J5nOPP0.png")
-    msg = await ctx.channel.send(embed=embedVar)
-    while True:
-            second -= 1
-            if second == 0:
-                embedVar.set_image(url=pokeBlind.img.url)
-                embedVar.set_field_at(0, name="timer", value=f"finished", inline=False)
+async def pokedraw(ctx, gen = None, time = 6):
+
+    error = None
+
+    if(gen):
+        genParsed = intTryParse(gen)
+        if(genParsed[1] and genParsed[0] > 0 and genParsed[0] < 9):
+            gen = genParsed[0]
+        else:
+            error = "Invalid Gen Number!"
+    timeParsed = intTryParse(time)
+    if(not timeParsed[1]):
+        error = "Invalid time!"
+    elif(timeParsed[0] > 4 and timeParsed[0] < 500):
+        time = timeParsed[0]
+    else:
+        error = "Either too short or too long!"
+
+    if (error):
+        await ctx.channel.send(error)
+    else:
+
+        msg = await ctx.channel.send("loading pokemon...")
+        pokeBlind = blindPokemon(gen, time)
+        
+        await msg.edit(content="Loaded!!")
+        second = pokeBlind.time
+        embedVar = discord.Embed(title=pokeBlind.pokemon.name, color=0x206694)
+        embedVar.add_field(name="timer", value=f"{second}", inline=False)
+        embedVar.set_image(url="https://i.imgur.com/J5nOPP0.png")
+        await msg.edit(embed=embedVar)
+        while True:
+                second -= 1
+                if second == 0:
+                    embedVar.set_image(url=pokeBlind.img.url)
+                    embedVar.set_field_at(0, name="timer", value=f"finished", inline=False)
+                    await msg.edit(embed=embedVar)
+                    break
+                embedVar.set_field_at(0, name="timer", value=f"{second}", inline=False)
                 await msg.edit(embed=embedVar)
-                break
-            embedVar.set_field_at(0, name="timer", value=f"{second}", inline=False)
-            await msg.edit(embed=embedVar)
-            await asyncio.sleep(1)
-    
+                await asyncio.sleep(1)
+        
+
+## Stole from https://stackoverflow.com/questions/2262333/is-there-a-built-in-or-more-pythonic-way-to-try-to-parse-a-string-to-an-integer
+def intTryParse(value):
+    try:
+        return int(value), True
+    except ValueError:
+        return value, False
+
 
 
 
