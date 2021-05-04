@@ -5,6 +5,10 @@ import json
 import discord
 from discord import Game
 from discord.ext import commands
+from types import SimpleNamespace
+import urllib.request
+import pokebase
+import asyncio
 
 from os import path
 
@@ -796,6 +800,96 @@ async def update_uc_game(bot,message):
         undercutGame = None
         
 
+
+##POKEMON
+
+class blindPokemon:
+    # last is 898
+    genList = [
+        {
+            "start":1,
+            "end":151
+        },
+        {
+            "start":152,
+            "end":251
+        },
+        {
+            "start":252,
+            "end":386
+        },
+        {
+            "start":387,
+            "end":493
+        },
+        {
+            "start":494,
+            "end":649
+        },
+        {
+            "start":650,
+            "end":721
+        },
+        {
+            "start":722,
+            "end":807
+        },
+        {
+            "start":808,
+            "end":898
+        }
+    ]
+    def pokeParse(self, pokeUrl):
+        url = pokeUrl
+        request = urllib.request.Request(url)
+        request.add_header('User-Agent', 'cheese')
+        data = urllib.request.urlopen(request).read()
+        x = json.loads(data, object_hook=lambda d: SimpleNamespace(**d))
+        return x
+    #just check if [pokemon-name]-mega exists or not, and coinflip between them if it does
+    def __init__(self, gen = None, time = 5):
+        self.gen = gen
+        self.time = time
+        if (self.gen):
+            difference = self.genList[self.gen - 1]["end"] - self.genList[self.gen - 1]["start"] + 1
+
+            print(difference)
+            self.pokeRangeUrl = f'https://pokeapi.co/api/v2/pokemon?limit={difference}&offset={self.genList[self.gen - 1]["start"]}'
+        else:
+            self.pokeRangeUrl =  f'https://pokeapi.co/api/v2/pokemon?limit=898'
+        
+        pokeList = self.pokeParse(self.pokeRangeUrl)
+        i = random.randrange(0,len(pokeList.results) - 1)
+
+        chosenPokemon = pokeList.results[i]
+
+        self.pokemon = pokebase.pokemon(chosenPokemon.name)
+
+        self.img = pokebase.SpriteResource('pokemon', self.pokemon.id, other_sprites=True, official_artwork=True)
+
+        #print(self.img.url)
+
+    
+
+@bot.command(name="pokedraw", description="pokemon draw??")
+async def pokedraw(ctx):
+    pokeBlind = blindPokemon()
+    second = pokeBlind.time
+    embedVar = discord.Embed(title=pokeBlind.pokemon.name, color=0x206694)
+    embedVar.add_field(name="timer", value=f"{second}", inline=False)
+    embedVar.set_image(url="https://i.imgur.com/J5nOPP0.png")
+    msg = await ctx.channel.send(embed=embedVar)
+    while True:
+            second -= 1
+            if second == 0:
+                embedVar.set_image(url=pokeBlind.img.url)
+                embedVar.set_field_at(0, name="timer", value=f"finished", inline=False)
+                await msg.edit(embed=embedVar)
+                break
+            embedVar.set_field_at(0, name="timer", value=f"{second}", inline=False)
+            await msg.edit(embed=embedVar)
+            await asyncio.sleep(1)
+    
 
 
 
