@@ -201,13 +201,19 @@ async def quote_edit(ctx,n, name, *, body: str):
    new_quote_body = f"<{name}> {body}"
    foundQuote = False
    print("before for loop")
-   for qnum in quotes.keys():
-       if (n is qnum and n != "num"):
-        foundQuote = True
-
+   if (n.lower() == "last"):
+       n = list(quotes.keys())[-1]
+       foundQuote = True
+   else:
+       for qnum in quotes.keys():
+        if (n == qnum and n != "num"):
+            foundQuote = True
+            break
+   if(foundQuote == True):
         new_quote_body = str(n) + ": " + new_quote_body
         quotes[str(n)] = new_quote_body
         update_db(quotes, "quotes.json")
+        print("quote successfully edited!")
         await ctx.channel.send("The quote was sucessfully edited")
    if (foundQuote == False):
         await ctx.channel.send("couldnt find quote to edit")
@@ -291,23 +297,25 @@ async def nsfwQuote_get(ctx,qnum: str):
 
 @nsfwQuote.command(name="find", aliases=["search", "f"])
 async def nsfwQuote_find(ctx,*, found: str):
-    print("before foundNsfwQuotes")
-    foundNsfwQuotes = []
-    print("after found nsfwQuotes summoning")
-    for (qnum, nsfwQuote) in nsfwQuotes.items():
+    print("before foundNSFW")
+    foundNSFW = []
+    onlyNsfw = iter(nsfwQuotes.items())
+    next(onlyNsfw)
+    print("after found quotes summoning")
+    for (qnum, nsfwQuote) in onlyNsfw:
         if (found in nsfwQuote):
-            foundNsfwQuotes.append(qnum)
+            foundNSFW.append(qnum)
             print("after every loop")
-    if len(foundNsfwQuotes) == 0:
+    if len(foundNSFW) == 0:
            await ctx.channel.send("couldn't find anything")
            print("after it failed to find anythin")
-    elif len(foundNsfwQuotes) == 1:
-           await ctx.channel.send(nsfwQuotes[foundNsfwQuotes[0]])
-    elif len(foundNsfwQuotes) > 1 and len(foundNsfwQuotes) <= 10:
-           await ctx.channel.send(quotes[foundNsfwQuotes[0]] + " " + "Also found in the following nsfwQuotes" + " " + ", ".join(foundNsfwQuotes[1:11]))
-    elif len(foundNsfwQuotes) > 10:
-           await ctx.channel.send(nsfwQuotes[foundNsfwQuotes[0]] + " " + "Also found in the following nsfwQuotes" + " " + ", ".join(foundNsfwQuotes[1:11]) + " and many more....")
-           print (nsfwQuotes[foundNsfwQuotes[0]] )
+    elif len(foundNSFW) == 1:
+           await ctx.channel.send(nsfwQuotes[foundNSFW[0]])
+    elif len(foundNSFW) > 1 and len(foundNSFW) <= 10:
+           await ctx.channel.send(nsfwQuotes[foundNSFW[0]] + " " + "Also found in the following nsfw quotes" + " " + ", ".join(foundNSFW[1:11]))
+    elif len(foundNSFW) > 10:
+           await ctx.channel.send(nsfwQuotes[foundNSFW[0]] + " " + "Also found in the following nsfw quotes" + " " + ", ".join(foundNSFW[1:11]) + " and many more....")
+           print (quotes[foundNSFW[0]] )
 
 
 @nsfwQuote.command(name="edit", aliases=["e"])
@@ -315,16 +323,22 @@ async def nsfwQuote_edit(ctx,n, name, *, body: str):
    new_nsfwQuote_body = f"<{name}> {body}"
    foundNsfwQuote = False
    print("before for loop")
-   for qnum in nsfwQuotes.keys():
-       if (n is qnum and n != "num"):
-        foundNsfwQuote = True
-
+   if (n.lower() == "last"):
+       n = list(nsfwQuotes.keys())[-1]
+       foundNsfwQuote = True
+   else:
+       for qnum in nsfwQuotes.keys():
+        if (n == qnum and n != "num"):
+            foundNsfwQuote = True
+            break;
+   if(foundNsfwQuote == True):
         new_nsfwQuote_body = str(n) + ": " + new_nsfwQuote_body
         nsfwQuotes[str(n)] = new_nsfwQuote_body
         update_db(nsfwQuotes, "nsfwQuotes.json")
-        await ctx.channel.send("The nsfwQuote was sucessfully edited")
+        print("nsfw successfully edited!")
+        await ctx.channel.send("The nsfw quote was sucessfully edited")
    if (foundNsfwQuote == False):
-        await ctx.channel.send("couldnt find nsfwQuote to edit")
+        await ctx.channel.send("couldnt find nsfw quote to edit")
 
 @nsfwQuote.command(name="number", aliases=["num"])
 async def nsfwdb_number(ctx):
