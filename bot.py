@@ -1,9 +1,12 @@
+
 import linecache
 import random
 import re
 import json
 import argparse
 import shlex
+from InventoryModule import *checkDM, getPurseAsCopper, 
+import DndAssets
 import re
 import discord
 from pprint import pprint
@@ -15,6 +18,7 @@ import urllib.request
 import pokebase
 from decimal import Decimal
 import asyncio
+import copy
 
 from os import path
 
@@ -45,12 +49,8 @@ with open("json/pings.json") as pings_file:
 with open("json/az_scores.json") as az_scores_file:
     az_scores = json.load(az_scores_file)
 
-with open("json/inventory.json") as inv_file:
-    inventoryDict = dict(json.load(inv_file))
+DndAssets.init()
 
-with open("json/coin.json") as coin_file:
-    coinDict = dict(json.load(coin_file))
-    print(coinDict)
 
 # AZ Game - no point in keeping a file for this
 az_game = None
@@ -78,7 +78,7 @@ bot = commands.Bot(commands.when_mentioned_or(config["prefix"]), intents=intents
 async def bot_quit(ctx):
     """Shut the bot down."""
     print("okay this quit print worked....")
-    await discordPrint(ctx,":eyes: :wave:")
+    await dPrint(ctx,":eyes: :wave:")
     await bot.logout()
 
 @bot.event
@@ -86,14 +86,10 @@ async def on_ready():
     print(f"Discord.py v {discord.__version__} \nQuoteBot v{VERSION} We have logged in as {bot.user}")
 
 @bot.command(name = "test",pass_context=True)
-async def test(ctx, *, testStr):
+async def test(ctx):
+    await dPrint(ctx, 
+    f"{testyfuncB()}")
 
-    await discordPrint(ctx, 
-    f"{parseGpString(testStr)}")
-
-#might be too clunky but i figured could be used for 90% of channel-response commands
-async def discordPrint(ctx, str):
-    await ctx.send(str)
 
 async def send_dm(member: discord.Member, content):
     channel = await member.create_dm()
@@ -145,6 +141,19 @@ async def check_pings(bot, message):
                 #print("second if in check pings")
                 await send_dm(user,"#{}: <{}> {}".format(message.channel, message.author.name, message.content))
 
+
+"""
+INVMANAGER
+
+  ___ _   ___     ____  __    _    _   _    _    ____ _____ 
+ |_ _| \ | \ \   / /  \/  |  / \  | \ | |  / \  / ___| ____|
+  | ||  \| |\ \ / /| |\/| | / _ \ |  \| | / _ \| |  _|  _|  
+  | || |\  | \ V / | |  | |/ ___ \| |\  |/ ___ \ |_| | |___ 
+ |___|_| \_|  \_/  |_|  |_/_/   \_\_| \_/_/   \_\____|_____|
+                                                            
+"""
+
+
 @bot.group(aliases=["inv", "inventory"], pass_context=True)
 async def invCMD(ctx):
     returnStr = ""
@@ -152,278 +161,47 @@ async def invCMD(ctx):
         returnStr += getInv(str(ctx.author.id))
         await ctx.channel.send(returnStr)
 
-@invCMD.command(name="-f", pass_context=True)
-async def invCMDFull(ctx):
+@invCMD.command(name="-f",  pass_context=True)
+async def invCMDFull(ctx, userStr = ""):
     returnStr = ""
-    returnStr += getInv(str(ctx.author.id), True)
-    await ctx.channel.send(returnStr)
+    userId = str(ctx.message.author.id)
 
-@invCMD.command(name="get", aliases=["g"], pass_context=True)
-async def invGet(ctx, userId, fullArg = ""):
-    returnStr = ""
-
-    user = getUser(ctx, userId)
-
-    commandUsr = getUser(ctx, str(ctx.message.author.id))
-
-    if user:
-        isDm = checkIfDm(ctx, commandUsr)
-        if fullArg.lower() == "-f":
-            if user.id == str(ctx.message.author.id) or isDm:
-                returnStr += getInv(str(user.id), True)
-            else:
-                returnStr += "You dont have permission to check that inventory!"
-        else:
-            returnStr += getInv(str(user.id))
+    if userStr != "" and checkDM(ctx, ctx.message.author):
+        returnStr += getUserInv(ctx, userStr, True)
+    elif userId in list(DndAssets.inventoryDict.keys()):
+        returnStr += getInv(userId, True)
     else:
-        returnStr += "That is not a valed user!"
-    await ctx.channel.send(returnStr)
+        returnStr += "Wuh oh"
+
+    await dPrint(ctx,returnStr)
+
+@invCMD.command(name="-u",  pass_context=True)
+async def invCMDGet(ctx, user):
+    returnStr = ""
+    userId = user.id
+
+    if userStr != "" and checkDM(ctx, ctx.message.author):
+        returnStr += getUserInv(ctx, userStr, True)
+    elif userId in list(DndAssets.inventoryDict.keys()):
+        returnStr += getInv(userId, True)
+    else:
+        returnStr += "Wuh oh"
+
+    await dPrint(ctx,returnStr)
 
 @invCMD.command(name="add", pass_context=True)
 async def inventoryDictAdd(ctx, *, itemStr: str):
     userId = str(ctx.message.author.id)
     returnStr = ""
-    argsList = ['-b','-i','-q','-p','-w']
-    saneArgValues = {'-b':"string1",'-i':"string2",'-q':1,'-p':True, '-w':0}
+    argModels = {'-b':str,'-i':str,'-q':1,'-p':False, '-w':0, '-u':str}
 
-    returnStr = addToInv(userId, itemStr, argsList, saneArgValues)
+    returnStr = addToInv(ctx, userId, itemStr, argModels)
     
     if returnStr == "":
         await ctx.channel.send("something went wrong")
     else:
         await ctx.channel.send(returnStr)
 
-def pairArgs(argsList, saneArgs, wholeStr):
-    indices= []
-    keys = []
-    values = []
-    parts ={}
-    argsListRemove = argsList.copy()
-    #split by arguments
-    for i in range (0, len(argsList)):
-        p = re.compile('|'.join(argsListRemove))
-        m = p.search(wholeStr)
-        if m:
-            indices.append(int(m.span()[0]))
-            indices.append(int(m.span()[1]))
-            string = m.group(0)
-            argsListRemove.remove(string)
-    indices.append(len(wholeStr))
-
-
-    for i in range(0,len(indices) - 1, 2):
-
-        for y in range(0,2):
-            subStr = splitByIndex(
-                wholeStr,
-                indices,
-                i,
-                y)
-            if subStr in saneArgs:
-                if isinstance(saneArgs[subStr] , bool):
-                    keys.append(subStr)
-                    values.append(True)
-                    break
-                else:
-                    keys.append(subStr)
-            else:
-                values.append(subStr)
-
-    for i in range(0, len(values)):
-        values[i] = values[i].rstrip().lstrip()
-    
-    parts = dict(zip(keys, values))
-    return parts
-def splitByIndex(wholeStr, indices, first, second):
-    l = indices[first+second]
-    if indices[first+second+1]:
-        r = indices[first+second+1]
-    else:
-        r = len(wholeStr)
-    splitStr = wholeStr[l:r]
-    return splitStr
-
-def addToInv(userId, itemStr, argsList, saneArgValues):
-    if userId not in inventoryDict.keys():
-        return "You don't have an inventory! Run inv init to get one!"
-    
-    returnStr = ""
-    
-    pairedArgs = pairArgs(argsList, saneArgValues, itemStr)
-    
-    if '-p' not in pairedArgs.keys():
-        pairedArgs['-p'] = False
-    if '-b' not in pairedArgs.keys():
-        pairedArgs['-b'] = ""
-    if '-q' not in pairedArgs.keys():
-        pairedArgs['-q'] = 1
-    if '-w' not in pairedArgs.keys():
-        pairedArgs['-w'] = 0
-
-    isSane = invSanityCheck(pairedArgs, saneArgValues)
-
-    if(isSane[0]):
-            bag = pairedArgs['-b']
-            item = pairedArgs['-i']
-            itemQuant = pairedArgs['-q']
-            isPublic = pairedArgs['-p']
-            itemWorth = pairedArgs['-w']
-            if item in list(inventoryDict[userId].keys()):
-                inventoryDict[userId][item]["quantity"] += itemQuant
-                inventoryDict[userId][item]["worth"] += inventoryDict[userId][item]["worth"]
-            else:
-                inventoryDict[userId][item] = {
-                    "public":isPublic,
-                    "quantity":itemQuant,
-                    "bag":bag,
-                    "worth":itemWorth
-                }
-                
-            if inventoryDict[userId][item]["quantity"] > 1:
-                total = inventoryDict[userId][item]["quantity"]
-                returnStr += f"Added {itemQuant} {item}(s) to your inventory! (for a total of {total})"
-            else:
-                returnStr += f"Added {item} to your inventory!"
-    else:
-        returnStr += isSane[1]
-    return returnStr
-
-#TODO check if this works
-def parseGpString(string):
-    string = string.strip()
-    coinType = string[-2:]
-    coinAmount = string[:-2]
-    copper = 0
-    if coinType in ['gp', 'sp', 'cp']:
-        coinInt = intTryParse(coinAmount)
-        if coinInt[1]:
-            copper = getCopper(coinInt[1], coinType)
-    return convertCoin(copper)
-
-
-def changeItemQuant(userId, bag, itemIndex, amount: int):
-    global inventoryDict
-    global quotes
-
-    returnStr = ""
-
-    itemName = [inventoryDict][0][userId][bag][itemIndex]["name"]
-    itemQuantity = [inventoryDict][0][userId][bag][itemIndex]["quantity"]
-    if itemQuantity >= 1 and amount < 0:
-        if itemQuantity + amount < 0:
-            del [inventoryDict][0][userId][bag][itemIndex]
-            returnStr += f"Removed all of {itemName}(s) from {bag}! (originally had {itemQuantity}!)"
-        else:
-            newItemQuantity = [inventoryDict][0][userId][bag][itemIndex]["quantity"] + amount
-            [inventoryDict][0][userId][bag][itemIndex]["quantity"] += amount
-            returnStr += f"Removed {abs(amount)} {itemName}(s) from {bag}! (originally had {itemQuantity}!)"
-    else:
-        if amount < 1:
-            del [inventoryDict][0][userId][bag][itemIndex]
-            returnStr += f"Removed {itemName} from inventory!"
-        else:
-            newItemQuantity = [inventoryDict][0][userId][bag][itemIndex]["quantity"] + amount
-            [inventoryDict][0][userId][bag][itemIndex]["quantity"] += amount
-            returnStr += f"Added {amount} {itemName}(s) to {bag}! (originally had {itemQuantity})"
-    return returnStr
-
-
-def invSanityCheck(argsList, argsValues):
-    if set(argsList.keys()) != set(argsValues):
-        return False, "wuh oh"
-    else:
-        for arg in argsList.keys():
-            print(argsList[arg])
-            print(argsValues[arg])
-            
-            if type(argsValues[arg]) == int:
-                if intTryParse(argsList[arg])[1]:
-                    argsList[arg] = intTryParse(argsList[arg])[0]
-                else:
-                    return False, f"{argsList[arg]} needs to be an int!"
-
-            elif type(argsList[arg]) != type(argsValues[arg]):
-                if argsValues[arg] == bool:
-                    return False, f"{argsList[arg]} needs to go last in command!"
-                else:
-                    return False, f"{argsList[arg]} needs to be {type(argsValues[arg])}"
-                
-    return True, "pass"
-
-
-
-
-def intTryParse(value):
-    try:
-        return int(value), True
-    except ValueError:
-        return value, False
-
-
-
-# Gets the user's inventoryDict
-def getInv(userid, showPrivate = False):
-    global inventoryDict
-    print(inventoryDict)
-    returnStr = f"<@{userid}>"
-    inventoryUsers = list(inventoryDict.keys())
-    dupeBags = []
-    bags = []
-    
-    if(userid in inventoryUsers):
-        returnStr += "'s inventory\n\n"
-        dupeBags = [sub["bag"] for sub in inventoryDict[userid].values() if "bag" in sub.keys()]
-        bags = list(set(dupeBags))
-        bags = sorted(bags, key=lambda s: (not s, s))
-        bagText = ""
-        totalItemWorth = 0
-
-        for (bag) in bags:
-            if bag =="":
-                returnStr += f"\t**Not in a bag**:\n"
-            else:
-                returnStr += f"\t**{bag}**:\n"
-            for (item) in list(inventoryDict[userid].keys()):
-                isItemPublic = inventoryDict[userid][item]["public"]
-                itemQuantity = inventoryDict[userid][item]["quantity"]
-                if bag == inventoryDict[userid][item]["bag"]:
-                    if showPrivate:
-                        totalItemWorth += inventoryDict[userid][item]["worth"]
-                        if isItemPublic:
-                            if itemQuantity == 1:
-                                bagText += f"\t\t- {item}\n"
-                            else:
-                                bagText += f"\t\t- {item} ({itemQuantity})\n"
-                        else:
-                            if itemQuantity == 1:
-                                bagText += f"\t\t- ||{item}||\n"
-                            else:
-                                bagText += f"\t\t- ||{item} ({itemQuantity})||\n"
-                    else:
-                        if isItemPublic:
-                            totalItemWorth += inventoryDict[userid][item]["worth"]  
-                            if itemQuantity == 1:
-                                bagText += f"\t\t- {item}\n"
-                            else:
-                                bagText += f"\t\t- {item} ({itemQuantity})\n"
-            if bagText == "":
-                bagText += "\t\t-Bag is empty\n"
-            returnStr += bagText
-            bagText = ""
-            totalCoin = convertCoin(totalItemWorth + coinPurseInCopper(coinDict[userid]))
-            totalCoinStr = f"{'{:,.2f}'.format(totalCoin[0])}{totalCoin[1]}"
-
-        returnStr += f"\n\tCurrently has {totalCoinStr} ({'{:,.2f}'.format(convertCoin(totalItemWorth)[0])}{convertCoin(totalItemWorth)[1]} in treasures)\n"
-    else:
-        returnStr += f" has no items..."
-    return returnStr
-
-def find_by_key(data, target):
-    for key, value in data.items():
-        if isinstance(value, dict):
-            yield from find_by_key(value, target)
-        elif key == target:
-            yield value
 
 @bot.group(aliases=["coin", "c"], pass_context=True)
 async def coinCMD(ctx):
@@ -433,65 +211,18 @@ async def coinCMD(ctx):
         returnStr += getAllCoinStr(str(ctx.author.id))
         await ctx.channel.send(returnStr)
 
-def getAllCoinStr(userid, isFull = False):
-    global coinDict
-    returnStr = "Coinpurse Contains:\n"
-    formatStr = ""
-    totalCoin = 0
-    totalCoinCop = 0
-    totalItemWorth = getTotalItemWorth(userid, isFull)
 
-    for coin in coinDict[userid]["public"]:
-        pubCoin = (coinDict[userid]["public"][coin],
-        coin)
-        privCoin = (coinDict[userid]["private"][coin],coin)
-        totalCoin = (pubCoin[0], pubCoin[1]) if not isFull else (pubCoin[0]+privCoin[0], pubCoin[1])
-        if totalCoin[0]> 0:
-            returnStr += f"\t -{formatConvCoin(totalCoin)}\n"
-    
-    finishCoin = formatConvCoin(
-        convertCoin(coinPurseInCopper(str(userid), isFull))
-        )
 
-    returnStr += f"For a total of {finishCoin}"
-    if totalItemWorth > 0:
-        totalCoinCop = coinPurseInCopper(
-        userid, isFull
-        )
-        convertedWorth = formatConvCoin(convertCoin(totalItemWorth))
-        completeWorth = formatConvCoin(convertCoin(totalItemWorth + coinPurseInCopper(userid, isFull)))
-        returnStr += f"\n\nPlus an additional {convertedWorth} of treasures, for a grand sum of {completeWorth}."
-    return returnStr
-    
-
-def formatConvCoin(coin):
-    formatStr = ""
-    if coin[0] % 1 == 0:
-        formatStr += "{:,.0f}"
-    else:
-        formatStr += "{:,.2f}"
-    return f"{formatStr.format(coin[0])}{coin[1]}"
-
-def getTotalItemWorth(userId, isFull):
-    global inventoryDict
-    totalItemWorth = 0
-
-    for (item) in list(inventoryDict[userId].keys()):
-        isItemPublic = inventoryDict[userId][item]["public"]
-        itemQuantity = inventoryDict[userId][item]["quantity"]
-        bag = inventoryDict[userId][item]["bag"]
-
-        if isFull:
-            totalItemWorth += inventoryDict[userId][item] 
-        else:
-            if isItemPublic:
-                totalItemWorth += inventoryDict[userId][item]["worth"]  
-    return totalItemWorth
 
 @coinCMD.command(name="-f", pass_context=True)
 async def privCoinCMD(ctx):
+    purseDict = DndAssets.purseDict
+    userId = str(ctx.author.id)
     returnStr = ""
-    returnStr += f"||You have {'{:,.2f}'.format(convertCoinPurse(str(ctx.author.id), True)[0])}{convertCoinPurse(str(ctx.author.id))[1]}||"
+    purseWorth = formatCoin(
+        sumCopper(
+        getPurseAsCopper(userId, True)))
+    returnStr += f"||{purseWorth}||"
     await ctx.channel.send(returnStr)
 
 @coinCMD.command(aliases=["add", "a"], pass_context=True)
@@ -504,7 +235,7 @@ async def addCoinCMD(ctx, amount, coin, private = "", user=None):
     if not cointTryInt[1] or cointTryInt[0] < 0:
         returnStr += f"<@{userId}> You need to provide a valid positive int!"
     else:
-        returnStr += modifyCoin(cointTryInt[0],coin,private,userId)
+        returnStr += modPurse(cointTryInt[0],coin,private,userId)
     await ctx.channel.send(returnStr)
 
 @coinCMD.command(aliases=["remove", "r"], pass_context=True)
@@ -517,92 +248,18 @@ async def reCoinCMD(ctx, amount, coin, private = "", user=None):
     if not cointTryInt[1]:
         returnStr += f"<@{userId}> You need to provide a valid int!"
     else:
-        returnStr += modifyCoin((-1 * abs(cointTryInt[0])),coin,private,userId)
+        returnStr += modPurse((-1 * abs(cointTryInt[0])),coin,private,userId)
     await ctx.channel.send(returnStr)
     
 
-def modifyCoin (amount, coin, private, userId):
-    global coinDict
-    returnStr = ""
-    coinList = ["gp", "sp", "cp"]
-    if amount < 0:
-        returnStr += f"Removed {abs(amount)} "
-    else:
-        returnStr += f"Added {amount} "
-    if coin not in coinList:
-        returnStr += f"Coin needs to be gp, sp, or cp, not {coin}"
-    else:
-        if private == "-p":
-            coinDict[userId]["private"][coin] += amount
-            coinTotal = coinDict[userId]["private"][coin]
-            returnStr += f"{coin} to your (private) coinpurse (total of {coinTotal}!)"
-        else:
-            coinDict[userId]["public"][coin] += amount
-            coinTotal = coinDict[userId]["public"][coin]
-            returnStr += f"{coin} to your coinpurse (total of {coinTotal}!)"
-    print(coinDict[userId])
-    return returnStr
-
-def checkIfDm(ctx, user):
-    isDmVar = False
-    role = discord.utils.find(lambda r: r.name == 'DM', ctx.message.guild.roles)
-    for serverRole in user.roles:
-        if role.name.lower() == serverRole.name.lower():
-            isDmVar = True
-    return isDmVar
-
-def getUser(ctx, userId):
-    userClean = userId.strip('<@!>')
-    user = discord.utils.find(lambda m: m.id == int(userClean), 
-        ctx.message.channel.guild.members)
-    return user
 
 
-def convertCoinPurse(userId, showPrivate = False):
-    global coinDict
-    coinPurse = coinDict[userId]
-    totalInCopper = coinPurseInCopper(coinPurse, showPrivate)
-    returnTotal = convertCoin(totalInCopper)
-    print(totalInCopper, returnTotal)
-    print(round(returnTotal[0], 2))
-    return (round(returnTotal[0],2), returnTotal[1])
 
-def coinPurseInCopper(userId, showPrivate = False):
-    global coinDict
-    totalInCopper = 0
-    selectedCoins = {
-    "gp":coinDict[userId]["public"]["gp"],
-    "sp":coinDict[userId]["public"]["sp"],
-    "cp":coinDict[userId]["public"]["cp"]}
-    if showPrivate:
-        for coin in userId["private"]:
-            selectedCoins[coin] += coinDict[userId]["private"][coin]
-    totalInCopper += getCopper(selectedCoins["gp"], "gp")
-    totalInCopper += getCopper(selectedCoins["sp"], "sp")
-    totalInCopper += selectedCoins["cp"]
-    return totalInCopper
 
-def convertCoin(copper):
-    returnTotal = ()
-    if round(copper / 1000, 2) < 1:
-        if round(copper / 100, 2) < 1:
-            returnTotal = (copper, "cp")
-        else:
-            returnTotal = (copper / 100, "sp")
-    else:
-        returnTotal = (copper / 1000, "gp")
-    return returnTotal
 
-def getCopper(coin, yp):
-    copper = 0
-    if yp == "gp":
-        copper = coin * 1000
-    elif yp == "sp":
-        copper = coin * 100
-    else:
-        copper = coin
-    return copper
-    
+
+
+
 
 
 
@@ -1417,6 +1074,21 @@ def intTryParse(value):
         return int(value), True
     except ValueError:
         return value, False
+
+
+
+
+
+
+
+
+
+
+
+
+
+async def dPrint(ctx, str):
+    await ctx.send(str)
 
 
 
