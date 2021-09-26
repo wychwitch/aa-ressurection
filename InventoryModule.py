@@ -1,5 +1,4 @@
 __all__ = [
-    "testyfuncB", 
     "sumCopper",
     "getCoinAsCopper",
     "sumCopper",
@@ -8,7 +7,9 @@ __all__ = [
     "getInv",
     "getUserInv",
     "checkDM",
-    "addToInv"]
+    "addToInv",
+    "cleanUserMention",
+    "getFormattedWealth"]
 from os import X_OK
 from typing import Tuple
 import discord
@@ -63,12 +64,13 @@ def getPurseAsCopper(userId: str, showFull = False):
     selectedCoins = {
     "gp":purseDict[userId]["public"]["gp"],
     "sp":purseDict[userId]["public"]["sp"],
-    "cp":purseDict[userId]["public"]["cp"]}
+    "cp":purseDict[userId]["public"]["cp"]
+    }
     if showFull:
-        for c in userId["private"]:
+        for c in purseDict[userId]["private"]:
             selectedCoins[c] += purseDict[userId]["private"][c]
-    totalInCopper += getCoinAsCopper(selectedCoins["gp"], "gp")
-    totalInCopper += getCoinAsCopper(selectedCoins["sp"], "sp")
+    totalInCopper += getCoinAsCopper((selectedCoins["gp"], "gp"))
+    totalInCopper += getCoinAsCopper((selectedCoins["sp"], "sp"))
     totalInCopper += selectedCoins["cp"]
     return totalInCopper
 
@@ -108,14 +110,15 @@ def sumItemWorth(userId: str, isFull: bool):
     totalItemWorth = 0
 
     for (item) in list(invDict[userId].keys()):
-        isItemPublic = invDict[userId][item]["public"]
+        isItemPrivate = invDict[userId][item]["private"]
         itemStock = invDict[userId][item]["stock"]
+        itemWorth = invDict[userId][item]["worth"]
 
-        if isFull:
-            totalItemWorth += invDict[userId][item]["worth"] * itemStock 
+        if isItemPrivate:
+            if isFull:
+                totalItemWorth += itemWorth * itemStock 
         else:
-            if isItemPublic:
-                totalItemWorth += invDict[userId][item]["worth"] * itemStock
+            totalItemWorth += itemWorth * itemStock
     return totalItemWorth
 
 def getFormattedWealth(userid: str, isFull = False):
@@ -132,8 +135,12 @@ def getFormattedWealth(userid: str, isFull = False):
 
         privCoin = (purseDict[userid]["private"][coinPiece],
             coinPiece)
-        
-        totalCoin += (pubCoin[0], pubCoin[1]) if not isFull else (pubCoin[0]+privCoin[0], pubCoin[1])
+
+        if isFull:
+            totalCoin = (pubCoin[0]+privCoin[0], pubCoin[1])
+        else:
+            totalCoin = (pubCoin[0], pubCoin[1])
+            
         if totalCoin[0]> 0:
             returnStr += f"\t -{formatCoin(totalCoin)}\n"
     
@@ -142,8 +149,10 @@ def getFormattedWealth(userid: str, isFull = False):
             getPurseAsCopper(userid, 
                 isFull))
         )
-
-    returnStr += f"For a total of {purseWorth} in coin."
+    if returnStr == "\nCoinpurse Contains:":
+        returnStr += " Nothing :(\n"
+    else:
+        returnStr += f"\nFor a total of {purseWorth} in coin."
     if totalItemWorth > 0:
         purseInCopper = getPurseAsCopper(
         userid, isFull
@@ -151,23 +160,51 @@ def getFormattedWealth(userid: str, isFull = False):
         formattedItemWorth = formatCoin(sumCopper(totalItemWorth))
         totalWealth = formatCoin(sumCopper(totalItemWorth + getPurseAsCopper(userid, isFull)))
 
-        returnStr += f"\n\nCombined with {formattedItemWorth} of treasure in the inventory, total wealth is {totalWealth}."
+        returnStr += f"\nCombined with {formattedItemWorth} of treasure in the inventory, total wealth is {totalWealth}."
     return returnStr
 
 def parseCoinStr(coinStr):
-    coin = ()
+    
     coinStr = coinStr.strip()
-    coin[0] = coinStr[-2:]
-    coin[1] = coinStr[:-2]
+    coin = (coinStr[:-2],coinStr[-2:])
     
     copper = 0
     if coin[1] in ['gp', 'sp', 'cp']:
         isInt = intTryParse(coin[0])
         if isInt[0]:
-            coin[0] = isInt[1]
+            coin = (isInt[0], coin[1])
             copper = getCoinAsCopper(coin)
-    return sumCopper(copper)
+            return sumCopper(copper)
+        else:
+            return 0
+    else:
+        return 0
 
+def divideItemWorth(totalWorth: int, totalStock: int):
+    return totalWorth / totalStock
+
+def depositCoin(userId:str, coin:tuple, moveToPrivate):
+    purseDict = DndAssets.purseDict
+    purseTo = ""
+    purseFrom = ""
+    if moveToPrivate:
+        purseTo = "private"
+        purseFrom = "public"
+    else:
+        purseTo = "public"
+        purseFrom = "private"
+    
+    purseCoin = (purseDict[userId][purseFrom][coin[1]], coin[1])
+    
+    if coin[0] > purseCoin[0]:
+        return f"You don't have {formatCoin(coin)} to move! You have {formatCoin(purseCoin)}"
+    purseCoin[0] -= coin[0]
+    purseDict[userId][purseFrom][purseCoin[1]] = purseCoin[0]
+    purseDict[userId][purseTo][purseCoin[1]] += coin[0]
+    totalCoin = purseDict[userId][purseTo][purseCoin[1]]
+    
+    DndAssets.purseDict = purseDict
+    return f"Moved {formatCoin(coin)} from {purseFrom} to {purseTo} (it now hjas {formatCoin(totalCoin)}"
 
 
 
@@ -186,13 +223,14 @@ INVENTORY
 # Gets the user's inventoryDict
 def getInv(userid, showFull = False):
     invDict = DndAssets.inventoryDict
+    bagIds = DndAssets.bagIds
     returnStr = f"<@{userid}>"
     inventoryUsers = list(invDict.keys())
     dupeBags = []
     bags = []
     
     if(userid in inventoryUsers):
-        returnStr += "'s inventory\n\n"
+        returnStr += "'s inventory\n"
         dupeBags = [sub["bag"] for sub in invDict[userid].values() if "bag" in sub.keys()]
         bags = list(set(dupeBags))
         bags = sorted(bags, key=lambda s: (not s, s))
@@ -204,28 +242,39 @@ def getInv(userid, showFull = False):
             bagText = ""
 
             if bag =="":
-                returnStr += f"\t**Not in a bag**:\n"
+                returnStr += f"\n\t**Not in a bag**:"
             else:
-                returnStr += f"\t**{bag}**:\n"
+                returnStr += f"\n\t**({bagIds[bag]}){bag}**:"
             for (item) in list(invDict[userid].keys()):
-                isPublic = invDict[userid][item]["public"]
+                isPrivate = invDict[userid][item]["private"]
                 itemStock = invDict[userid][item]["stock"]
+                itemWorth = invDict[userid][item]["worth"]
 
                 if bag == invDict[userid][item]["bag"]:
-                    if showFull and not isPublic:
-                        itemBuffer = "||"
+                    if isPrivate:
+                        if showFull:
+                            bagText += f"\n\t\t- ||{item}"
+                            if itemStock > 1:
+                                bagText += f"({itemStock})||"
+                            else:
+                                bagText += f"||"
+                            if itemWorth > 0:
+                                bagText += f"\n\t\t\t- ||Worth {formatCoin(sumCopper(itemWorth))}||"
                     else:
-                        itemBuffer = ""
+                        bagText += f"\n\t\t- {item}"
+                        if itemStock > 1:
+                                bagText += f"({itemStock})"
+                        if itemWorth > 0:
+                                bagText += f"\n\t\t\t- Worth {formatCoin(sumCopper(itemWorth))}"
                     
-                    bagText += f"\n\t\t- {itemBuffer}{item}{itemBuffer}"
-                    if itemStock < 1:
-                        bagText += f"({itemStock})"
+                    
+                    
 
             if bagText == "":
                 bagText += "\n\t\t-*Bag is empty*"
             returnStr += bagText
             
-            totalWealth = getFormattedWealth
+            totalWealth = getFormattedWealth(userid, showFull)
 
         returnStr += f"\n{totalWealth}"
     else:
@@ -268,7 +317,7 @@ def modItemStock(userId: str, item: str, amount: int):
     return returnStr
 
 def validateArgs(argsDict, argsModels):
-    if set(argsDict.keys()) == set(argsModels):
+    if set(argsDict.keys()) == set(argsModels.keys()):
         for arg in argsDict.keys():
             if type(argsModels[arg]) == int:
                 tmp = intTryParse(argsDict[arg])
@@ -282,7 +331,7 @@ def validateArgs(argsDict, argsModels):
     else:
         return False, "wuh oh"
         
-    return True, "Success!"
+    return True, argsDict
 
 def combineArgs(argModels, wholeStr):
     indices= []
@@ -329,6 +378,8 @@ def combineArgs(argModels, wholeStr):
 
 def addToInv(ctx, userId, itemStr, argModels):
     invDict = DndAssets.inventoryDict
+    bagIds = DndAssets.bagIds
+    
     returnStr = ""
 
     if userId not in invDict.keys():
@@ -336,47 +387,48 @@ def addToInv(ctx, userId, itemStr, argModels):
     
     combinedArgs = combineArgs(argModels, itemStr)
     
-    if '-p' not in combineArgs.keys():
-        combineArgs['-p'] = False
-    if '-b' not in combineArgs.keys():
-        combineArgs['-b'] = ""
-    if '-q' not in combineArgs.keys():
-        combineArgs['-s'] = 1
-    if '-w' not in combineArgs.keys():
-        combineArgs['-w'] = 0
-    if '-u' not in combineArgs.keys():
-        combineArgs['-u'] = ""
+    if '-p' not in combinedArgs.keys():
+        combinedArgs['-p'] = False
+    if '-b' not in combinedArgs.keys():
+        combinedArgs['-b'] = ""
+    if '-q' not in combinedArgs.keys():
+        combinedArgs['-s'] = 1
+    if '-w' not in combinedArgs.keys():
+        combinedArgs['-w'] = "0cp"
+    if '-u' not in combinedArgs.keys():
+        combinedArgs['-u'] = ""
     
-    if combineArgs['-u'] != "":
-        if combineArgs['-u'] in list(invDict.keys()) and checkDM(
+    if combinedArgs['-u'] != "":
+        if combinedArgs['-u'] in list(invDict.keys()) and checkDM(
                 ctx, ctx.message.author): 
-            userId = combineArgs['-u']
+            userId = combinedArgs['-u']
         else:
             return errorWhoops(getframeinfo(currentframe()))
 
-    validateResult = validateArgs(combineArgs, argModels)
+    validateResult = validateArgs(combinedArgs, argModels)
     isValid = validateResult[0]
     if isValid:
         validArgs = validateResult[1]
-
         bag = validArgs['-b']
         item = validArgs['-i']
         itemStock = validArgs['-s']
-        isPublic = validArgs['-p']
-        itemWorth = validArgs['-w']
+        isPrivate = validArgs['-p']
+        itemWorth = getCoinAsCopper(parseCoinStr(validArgs['-w']))
         
-        if item in list(invDict[userId].keys()):
+        if isItemInInv(item):
             invDict[userId][item]["stock"] += itemStock
             #This is adding its worth to itself
-            invDict[userId][item]["worth"] += invDict[userId][item]["worth"]
+            singleItemWorth = divideItemWorth(invDict[userId][item]["worth"], invDict[userId][item]["stock"])
+            invDict[userId][item]["worth"] += itemStock * singleItemWorth
         else:
             invDict[userId][item] = {
-                "public":isPublic,
+                "private":isPrivate,
                 "stock":itemStock,
                 "bag":bag,
                 "worth":itemWorth
             }
-            
+            addNewBagId(userId, bag)
+
         if invDict[userId][item]["stock"] > 1:
             total = invDict[userId][item]["stock"]
             returnStr += f"Added {itemStock} {item}(s) to your inventory! (for a total of {total})"
@@ -384,24 +436,151 @@ def addToInv(ctx, userId, itemStr, argModels):
             returnStr += f"Added {item} to your inventory!"
     else:
         returnStr += validateResult[1]
+    DndAssets.inventoryDict = invDict
     return returnStr
 
 def splitByIndex(wholeStr, indices, first, second):
     l = indices[first+second]
-    if indices[first+second+1]:
+    if first+second+1 in range (0, len(indices)):
         r = indices[first+second+1]
     else:
         r = len(wholeStr)
     splitStr = wholeStr[l:r]
     return splitStr
 
-def getUserInv(ctx, userStr:str, showFull = False):
+def getUserInv(ctx, userId:str, showFull = False):
     returnStr = ""
-    argModels = {"-u":str}
-    userId = combineArgs(argModels, userStr)["-u"]
-
 
     returnStr += getInv(str(userId), showFull)
+    return returnStr
+
+def removeItem(userId, item, amount= 1, isAll = False):
+    invDict = DndAssets.inventoryDict
+    returnStr = ""
+    stock = invDict[userId][item]["stock"]
+    bag = invDict[userId][item]["bag"]
+    if isItemInInv(item):
+        invDict[userId][item]["stock"] -= amount
+        if invDict[userId][item]["stock"] >=0 or isAll:
+            del invDict[userId][item]
+            DndAssets.inventoryDict = invDict
+            returnStr = f"Removed all of {item} from {bag}!"
+        else:
+            returnStr = f"Removed {amount} {item}(s) from {bag}! (there is {stock} left)."
+    else:
+        returnStr = f"You don't have {item} in your inventory!"
+
+def isItemInInv(userId, item):
+    invDict = DndAssets.inventoryDict
+    onlyItems = list(invDict[userId][item].keys())
+    for i in range(len(onlyItems)):
+        onlyItems[i] = onlyItems[i].lower()
+    if item in onlyItems:
+        return True
+    else:
+        return False
+
+def togItemVisibility(userId, item):
+    invDict = DndAssets.inventoryDict
+    returnStr = ""
+    if isItemInInv(item):
+        invDict[userId][item]["private"] = not invDict[userId][item]["private"]
+        if invDict[userId][item]["private"]:
+            returnStr = f"You hid {item}!"
+        else:
+            returnStr = f"You unhid {item}!"
+
+def moveItem(userId, item, bag = ""):
+    invDict = DndAssets.inventoryDict
+    oldBag = invDict[item]["bag"]
+    if bag != "":
+        isBag = isBagInInv(userId, item)
+        if isBag[0]:
+            invDict[item]["bag"] = isBag[1]
+            DndAssets.inventoryDict = invDict 
+            return f"Moved {item} from {oldBag} to {isBag[1]}!"
+        else:
+            return "Incorrect bag name or id"
+    else:
+        invDict[item]["bag"] = ""
+        DndAssets.inventoryDict = invDict 
+        return f"Dumped {item} out of {oldBag}!"
+
+def removeBag(userId, bag):
+    invDict = DndAssets.inventoryDict
+    isBag = isBagInInv(userId)
+    if isBag[0]:
+        for item in list(invDict[userId].keys()):
+            if invDict[userId][item]["bag"] == isBag[1]:
+                invDict[userId][item]["bag"] = ""
+        DndAssets.inventoryDict = invDict
+        return f"Dumped all items from {bag}!"
+    else:
+        return "Couldn't find bag..."
+
+def togBagItemVisibility(userId, bag, isPrivate = True):
+    invDict = DndAssets.inventoryDict
+    visiText = ""
+    if isPrivate:
+        visiText = "hidden"
+    else:
+        visiText = "unhidden"
+    isBag = isBagInInv(userId, bag)
+
+    if isBag[0]:
+        for item in list(invDict[userId].keys()):
+            if invDict[userId][item]["bag"] == isBag[1]:
+                invDict[userId][item]["private"] = isPrivate
+                DndAssets.inventoryDict = invDict
+        return f"All items in {isBag[1]} are now {visiText}!"
+    else:
+        return "Whoops!"
+
+def getBagId(userId, bagName):
+    bagIds = DndAssets.bagIds
+    bagId = 0
+    foundId = False
+    for bag in bagIds:
+        if bagName == str((bag.key())):
+            bagId = bag
+            foundId = True
+            break
+
+
+    return foundId, bagId
+
+def getBagById(userId, bagId):
+    bagIds = DndAssets.bagIds
+    foundName = (False, "---")
+    if userId in list(bagIds.keys()):
+        for bag in list(bagIds[userId].keys()):
+            if bag == bagId:
+                foundName = (True, bag)
+                break
+    return foundName
+
+def isBagInInv(userId, bag):
+    invDict = DndAssets.inventoryDict
+    isBagInt = intTryParse(bag)
+    foundBag = (False, "---")
+    if isBagInt[1]:
+        foundBag = getBagById(userId, bag)
+    else:
+        dupeBags = [sub["bag"] for sub in invDict[userId].values() if "bag" in sub.keys()]
+        bags = list(set(dupeBags))
+        for bagName in bags:
+            bagLower = bagName.lower()
+            if bag.lower() == bagLower:
+                foundBag = (True, bagName)
+    return foundBag
+    
+def addNewBagId(userId, bag):
+    bagIds = DndAssets.bagIds
+    bagIds[userId]["--bagNum"] +=1
+    bagIds[userId][bag] = bagIds[userId]["--bagNum"]
+    DndAssets.bagIds = bagIds
+
+
 
 """
   __  __ ___ ____   ____ 
@@ -430,8 +609,36 @@ def findByKey(data, target):
         elif key == target:
             yield value
 
-def getUser(ctx, userId: str):
-    userClean = userId.strip('<@!>')
-    user = discord.utils.find(lambda m: m.id == int(userClean), 
+def getUser(ctx, userMention: str):
+    userId = cleanUserMention()
+    user = discord.utils.find(lambda m: m.id == int(userId), 
         ctx.message.channel.guild.members)
     return user
+
+def cleanUserMention(userStr: str):
+    userId = userStr.strip('<@!>')
+    return userId
+
+def userInit(userId: str):
+    invDict = DndAssets.inventoryDict
+    purseDict = DndAssets.purseDict
+    bagIds = DndAssets.bagIds
+
+    if user not in list(invDict.keys()):
+        invDict[userId] = {}
+        purseDict[userId] = {
+            "public":{
+            "gp":0,
+            "sp":0,
+            "cp":0
+            },
+            "private":{
+                "gp":3,
+                "sp":200,
+                "cp":2
+            }
+        }
+        bagIds[userId] = {"--bagNum":0}
+        return "Initialized!!"
+    else:
+        return "You already have an inventory dumby"

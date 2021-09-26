@@ -1,29 +1,31 @@
 ARADIA dnd: 
-    ☐ inv add -i item { -b bag } { -q int } -u user @medium @15m
-        (gives specified user the item, player has to have item to give it unless they're dm)
-    ☐ make -p flip bool when modifying item @high  @created(21-09-24 20:02)
-    ☐ inv del @medium @created(21-09-24 11:34)
+    ✔ inv add -i item { -b bag } { -q int } -u user @medium @15m @untested @done(21-09-26 03:02)
+    ☐ give command that gives specified user the item, player has to have item to give it @low @created(21-09-25 13:35)
+    ☐ inv del @medium @created(21-09-24 11:34) @backend finished 
         Deletes the last message by bot 
-    ☐ inv add -i item -w [1yp/1 yp] @high @30m
-        add an item with specified worth. Will need a function to parse the "1gp / 1 gp" as tuple (1, "gp")
     ☐ inv add --bulk -i item1 -i item2 -i item3 -p @low  @1h
         bulk item add, optional q with reach one (possibly, worry about that last) into specified bag, also tags all public or private if needed. Will need to have its own function i think. 
     ☐ inv give i- item -u user @low @created(21-09-23 15:40)
-    ☐ inv init {-f}@low @created(21-09-24 03:01)
+    ☐ inv init {-f}@low @created(21-09-24 03:01) @backend finished
         Adds user to the inv dict
-    ☐ rename public to private in items and fix code wherever needed @low @created(21-09-24 03:27)
-    ☐ inv remove -i item { -q int } { user } @high @10m
+    ☐ inv remove -i item { -q int } { user } @backend finished @high @10m @created(21-09-26 01:25)
         removes item from inventory, easy
-    ☐ inv remove -b bag { -d } { user } @high @10m
+    ☐ inv remove -b bag { -d } { user } @backend finished  @high @10m
         removes bag from all items, if -d is passed destroys items in bag as well 
     ☐ inv mod -i item, {-n name} {-b bag} { -u user } @high  @15m
+        make sure that -p flip bool when modifying item
+    ☐ inv hide -i item (or -b bag) @backend finished @created(21-09-25 16:00)
+        sets single item or all items in bag to private
+    ☐ inv unhide -i item (or -b bag) @backend finished  @created(21-09-25 16:00)
+        sets single item or all items in bag to public
+    ☐ int move -i item -b bag @high @backend finished   @created(21-09-25 15:59)
         Moves item to the bag, or just out of bag if no bag is supplied
-    ☐ inv dump bag {-f} {-t bag} { -u user } @high @15m
+    ☐ inv dump bag {-f} {-t bag} { -u user } @backend finished  @high @15m
         Moves all items From bag To bag
     ☐ Rename discordprint to dprint and replace all send messages with the discord print funct @low @created(21-09-24 11:36)
-    ☐ make bag index json  and save each users bag index to use instead of name(display too) @low @created(21-09-24 20:10)
-    ☐ Replace all if boolvar, then thing(bool) with just thing({!}boolvar) @low @created(21-09-24 17:57)
+    ☐ make bag index json  and save each users bag index to use instead of name(display too) @backend finished   @low @created(21-09-24 20:10)
     ☐ Test for input error handling + good error reporting @low @created(21-09-23 13:31) @3h
+    ☐ Add function to move money in and out of private and public purses @low @created(21-09-25 21:48)
     ☐ Comment EVERYTHING so I can tell what does what later @low @created(21-09-23 13:32) @1h
 
 Aradia General:
@@ -31,14 +33,16 @@ Aradia General:
     ☐ Also clean and comment code GOD @2h
 
 Archive:  
+  ✔ inv add -i item -w [1yp/1 yp] @high @30m @done(21-09-25 15:56) @project(ARADIA dnd)
+    add an item with specified worth. Will need a function to parse the "1gp / 1 gp" as tuple (1, "gp")
   ✔ inv {get} displays worth (all (public or private)item worth + (public or private)gp) @medium @30m @done(21-09-25 04:05) @project(ARADIA dnd)
   ✔ Make (or find) a function that easily takes string and sends to the channel, and make it where it stores the last message in a global variable. @medium @created(21-09-25 04:03) @done(21-09-25 04:03) @project(ARADIA dnd)
   ✔ move the majority of the script to their own script files and import them @medium @created(21-09-24 18:02) @done(21-09-25 04:04) @project(ARADIA dnd)
     (its way way too hard to keep track)
   ✔ Implement the bew getCoinStr command @high @created(21-09-24 15:03) @done(21-09-24 19:09) @project(ARADIA dnd)
-    ✔ Add worth var to inv json items @high @created(21-09-23 15:36) @done(21-09-24 01:35) @project(ARADIA dnd)
-    ✔ inv get user {-f} @high @15m @done(21-09-24 00:58) @project(ARADIA dnd)
-        (gets and displays the inventory of other user (dm can show full inventory with -f)
-    ✔ Fix item pair logic so if the argument is a bool, don't attach to previous / dont attach to next @critical @45 @done(21-09-23 15:34) @project(ARADIA dnd)
-    ✔ PLEASE save the python arg parsing function in snibox for myself later holy shit please, and try your hand at making one in c# if you cant find a better one (or library) online @critical   @created(21-09-23 13:33) @done(21-09-23 15:34) @project(ARADIA dnd)
+  ✔ Add worth var to inv json items @high @created(21-09-23 15:36) @done(21-09-24 01:35) @project(ARADIA dnd)
+  ✔ inv get user {-f} @high @15m @done(21-09-24 00:58) @project(ARADIA dnd)
+    (gets and displays the inventory of other user (dm can show full inventory with -f)
+  ✔ Fix item pair logic so if the argument is a bool, don't attach to previous / dont attach to next @critical @45 @done(21-09-23 15:34) @project(ARADIA dnd)
+  ✔ PLEASE save the python arg parsing function in snibox for myself later holy shit please, and try your hand at making one in c# if you cant find a better one (or library) online @critical   @created(21-09-23 13:33) @done(21-09-23 15:34) @project(ARADIA dnd)
     

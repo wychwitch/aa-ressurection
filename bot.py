@@ -5,7 +5,7 @@ import re
 import json
 import argparse
 import shlex
-from InventoryModule import *checkDM, getPurseAsCopper, 
+from InventoryModule import * 
 import DndAssets
 import re
 import discord
@@ -176,53 +176,47 @@ async def invCMDFull(ctx, userStr = ""):
     await dPrint(ctx,returnStr)
 
 @invCMD.command(name="-u",  pass_context=True)
-async def invCMDGet(ctx, user):
+async def invCMDGet(ctx, userMention, showFull = ""):
     returnStr = ""
-    userId = user.id
+    isShowFull = False
+    userId = cleanUserMention(userMention)
+    if showFull == "-f":
+        isShowFull = checkDM(ctx, ctx.message.author)
 
-    if userStr != "" and checkDM(ctx, ctx.message.author):
-        returnStr += getUserInv(ctx, userStr, True)
-    elif userId in list(DndAssets.inventoryDict.keys()):
-        returnStr += getInv(userId, True)
+    if userId in list(DndAssets.inventoryDict.keys()):
+        returnStr += getUserInv(ctx, userId, isShowFull)
     else:
         returnStr += "Wuh oh"
-
     await dPrint(ctx,returnStr)
 
 @invCMD.command(name="add", pass_context=True)
 async def inventoryDictAdd(ctx, *, itemStr: str):
     userId = str(ctx.message.author.id)
     returnStr = ""
-    argModels = {'-b':str,'-i':str,'-q':1,'-p':False, '-w':0, '-u':str}
+    argModels = {'-b':"str",'-i':"str",'-s':1,'-p':False, '-w':"str", '-u':"str"}
 
     returnStr = addToInv(ctx, userId, itemStr, argModels)
     
     if returnStr == "":
-        await ctx.channel.send("something went wrong")
+        dPrint(ctx, "something went wrong")
     else:
-        await ctx.channel.send(returnStr)
+        dPrint(ctx, returnStr)
+
 
 
 @bot.group(aliases=["coin", "c"], pass_context=True)
-async def coinCMD(ctx):
-    trailingZeroes = ""
+async def coinCMD(ctx, fullArg = ""):
     returnStr = ""
     if ctx.invoked_subcommand is None:
-        returnStr += getAllCoinStr(str(ctx.author.id))
+        returnStr += getFormattedWealth(str(ctx.author.id))
         await ctx.channel.send(returnStr)
-
-
 
 
 @coinCMD.command(name="-f", pass_context=True)
 async def privCoinCMD(ctx):
-    purseDict = DndAssets.purseDict
     userId = str(ctx.author.id)
     returnStr = ""
-    purseWorth = formatCoin(
-        sumCopper(
-        getPurseAsCopper(userId, True)))
-    returnStr += f"||{purseWorth}||"
+    returnStr += getFormattedWealth(str(userId), True)
     await ctx.channel.send(returnStr)
 
 @coinCMD.command(aliases=["add", "a"], pass_context=True)
@@ -280,7 +274,6 @@ async def quote(ctx):
             return
         await ctx.channel.send(quotes[emptykey])
 
-
 @quote.command(name="add", aliases=["new", "create" "a"])
 async def quote_new(ctx,name, *, body: str):
     global quotes
@@ -328,7 +321,6 @@ async def quote_find(ctx,*, found: str):
     elif len(foundquotes) > 10:
            await ctx.channel.send(quotes[foundquotes[0]] + " " + "Also found in the following quotes" + " " + ", ".join(foundquotes[1:11]) + " and many more....")
            print (quotes[foundquotes[0]] )
-
 
 @quote.command(name="edit", aliases=["e"])
 async def quote_edit(ctx,n, name, *, body: str):
