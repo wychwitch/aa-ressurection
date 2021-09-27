@@ -5,7 +5,7 @@ import re
 import json
 import argparse
 import shlex
-from InventoryModule import * 
+from InventoryModule import *    
 import DndAssets
 import re
 import discord
@@ -193,16 +193,53 @@ async def invCMDGet(ctx, userMention, showFull = ""):
 async def inventoryDictAdd(ctx, *, itemStr: str):
     userId = str(ctx.message.author.id)
     returnStr = ""
-    argModels = {'-b':"str",'-i':"str",'-s':1,'-p':False, '-w':"str", '-u':"str"}
+    argModels = {'-b':"str",'-i':"str",'-s':1,'-p':False, '-w':"str", '-u':"str", "--bulk":[]}
 
     returnStr = addToInv(ctx, userId, itemStr, argModels)
     
     if returnStr == "":
-        dPrint(ctx, "something went wrong")
+        await dPrint(ctx, "something went wrong")
     else:
-        dPrint(ctx, returnStr)
+        await dPrint(ctx, returnStr)
+
+@invCMD.command(name="init", aliases=["start"], pass_context = True)
+async def invCMDInit(ctx):
+    return userInit(str(ctx.message.author.id))
+
+@invCMD.command(name="remove", aliases=["rem", "del", "delete"], pass_context = True)
+async def invCMDDelete(ctx, *, remStr:str):
+    userId = str(ctx.message.author.id)
+    returnStr = ""
+    argModels = {'-i':'str', '-s':1, '-u':"stt", '-b':'str'}
+    returnStr = tryRemove(ctx, userId, remStr, argModels)
+    await dPrint(ctx, returnStr)
+
+@invCMD.command(name="hide", pass_context = True)
+async def invCMDDHide(ctx, target, targetName):
+    userId = str(ctx.message.author.id)
+    await dPrint(ctx, tryHideCommand(userId, target, targetName, True))
+
+@invCMD.command(name="unhide", pass_context = True)
+async def invCMDDHide(ctx, target, targetName):
+    userId = str(ctx.message.author.id)
+    await dPrint(ctx, tryHideCommand(userId, target, targetName, False))
+
+@invCMD.command(name="move", pass_context = True)
+async def invCMDDHide(ctx, *, movStr:str):
+    userId = str(ctx.message.author.id)
+    returnStr = ""
+    argModels = {'-i':'str', '-t':'str'}
+    returnStr = tryMove(userId, movStr, argModels)
+
+@invCMD.command(name="dump", pass_context = True)
+async def invCMDDHide(ctx, *, movStr:str):
+    userId = str(ctx.message.author.id)
+    returnStr = ""
+    argModels = {'-b':'str', '-t':'str'}
+    returnStr = tryMove(userId, movStr, argModels)
 
 
+## COIN
 
 @bot.group(aliases=["coin", "c"], pass_context=True)
 async def coinCMD(ctx, fullArg = ""):

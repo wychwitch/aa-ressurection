@@ -1,29 +1,30 @@
 ARADIA dnd: 
     ✔ inv add -i item { -b bag } { -q int } -u user @medium @15m @untested @done(21-09-26 03:02)
     ☐ give command that gives specified user the item, player has to have item to give it @low @created(21-09-25 13:35)
-    ☐ inv del @medium @created(21-09-24 11:34) @backend finished 
+    ☐ inv del @medium @created(21-09-24 11:34) @untested  
         Deletes the last message by bot 
     ☐ inv add --bulk -i item1 -i item2 -i item3 -p @low  @1h
         bulk item add, optional q with reach one (possibly, worry about that last) into specified bag, also tags all public or private if needed. Will need to have its own function i think. 
     ☐ inv give i- item -u user @low @created(21-09-23 15:40)
-    ☐ inv init {-f}@low @created(21-09-24 03:01) @backend finished
+    ☐ inv init {-f}@low @created(21-09-24 03:01) @untested
         Adds user to the inv dict
-    ☐ inv remove -i item { -q int } { user } @backend finished @high @10m @created(21-09-26 01:25)
+    ☐ inv remove -i item { -q int } {-u user } @untested - @high @10m @created(21-09-26 01:25)
         removes item from inventory, easy
-    ☐ inv remove -b bag { -d } { user } @backend finished  @high @10m
+    ☐ inv remove -b bag { -d } { user } @untested  @high @10m
         removes bag from all items, if -d is passed destroys items in bag as well 
     ☐ inv mod -i item, {-n name} {-b bag} { -u user } @high  @15m
         make sure that -p flip bool when modifying item
-    ☐ inv hide -i item (or -b bag) @backend finished @created(21-09-25 16:00)
+    ☐ inv hide -i item (or -b bag) @untested @created(21-09-25 16:00)
         sets single item or all items in bag to private
-    ☐ inv unhide -i item (or -b bag) @backend finished  @created(21-09-25 16:00)
+    ☐ inv unhide -i item (or -b bag) @untested @created(21-09-25 16:00)
         sets single item or all items in bag to public
-    ☐ int move -i item -b bag @high @backend finished   @created(21-09-25 15:59)
+    ☐ int move -i item {-b bag} @high @untested   @created(21-09-25 15:59)
         Moves item to the bag, or just out of bag if no bag is supplied
-    ☐ inv dump bag {-f} {-t bag} { -u user } @backend finished  @high @15m
+    ☐ inv dump -f bag  {-t bag} { -u user } @untested  @high @15m
         Moves all items From bag To bag
     ☐ Rename discordprint to dprint and replace all send messages with the discord print funct @low @created(21-09-24 11:36)
-    ☐ make bag index json  and save each users bag index to use instead of name(display too) @backend finished   @low @created(21-09-24 20:10)
+    ✔ make bag index json  and save each users bag index to use instead of name(display too) @backend finished   @low @created(21-09-24 20:10) @done(21-09-27 00:45)
+    
     ☐ Test for input error handling + good error reporting @low @created(21-09-23 13:31) @3h
     ☐ Add function to move money in and out of private and public purses @low @created(21-09-25 21:48)
     ☐ Comment EVERYTHING so I can tell what does what later @low @created(21-09-23 13:32) @1h
