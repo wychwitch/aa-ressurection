@@ -16,14 +16,20 @@ __all__ = [
     "togItemVisibility",
     "togBagItemVisibility",
     "tryHideCommand",
-    "tryMove"]
+    "tryMove",
+    "modPurse",
+    "processModCoin",
+    "testyfunc"
+    ]
 from os import X_OK
 from typing import Tuple
 import discord
 import re
 from inspect import currentframe, getframeinfo
+import argparse
 
 from discord import user
+from discord.ext.commands.core import after_invoke
 import DndAssets
 
 """
@@ -80,34 +86,27 @@ def getPurseAsCopper(userId: str, showFull = False):
     totalInCopper += selectedCoins["cp"]
     return totalInCopper
 
-def modPurse(amount: int, coinPiece: str,  userId: str, private = False):
+def modPurse(userId, coin, private = False):
     purseDict = DndAssets.purseDict
     returnStr = ""
-    coin = ()
     visibility = ""
     censor = ""
-    totalStr = ""
     if private:
         visibility = "private"
         censor = "||"
     else:
         visibility = "public"
     
-    if userId in purseDict and coinPiece in DndAssets.coinPieceList:
-        coin[1] = coinPiece
-        purseDict[userId][visibility][coin[1]] += amount
-        if purseDict[userId][visibility][coin[1]]< 0:
-                purseDict[userId][visibility][coin[1]] = 0
-        coin[0] = purseDict[userId][visibility][coin[1]]
-        formattedCoin = formatCoin(coin)
-        
-        if amount < 0:
-            returnStr += f"Removed {abs(amount)}{coin[1]}. Total {coin[1]} is now {censor}{formattedCoin}{censor}"
+    if userId in list(purseDict.keys()):
+        purseDict[userId][visibility][coin[1]] += coin[0]
+        remainingCoin = (purseDict[userId][visibility][coin[1]], coin[1])
+        formattedCoin = formatCoin(remainingCoin)
+        if coin[0] < 0:
+            returnStr += f"Removed {abs(coin[0])}{coin[1]}. Total {coin[1]} is now {censor}{formattedCoin}{censor}"
         else:
-            returnStr += f"{amount}{coin[1]} added to your {visibility} coinpurse (total of {censor}{formattedCoin}{censor}!)"
+            returnStr += f"{coin[0]}{coin[1]} added to your {visibility} coinpurse (total of {censor}{formattedCoin}{censor}!)"
     else:
         returnStr += "Somethings wrong;"
-
     DndAssets.purseDict = purseDict
     return returnStr
 
@@ -169,6 +168,25 @@ def getFormattedWealth(userid: str, isFull = False):
         returnStr += f"\nCombined with {formattedItemWorth} of treasure in the inventory, total wealth is {totalWealth}."
     return returnStr
 
+def processModCoin(userId, commandStr, argModels, isRemove= False):
+
+    combinedArgs  = combineArgs(argModels, commandStr)
+
+    if '-p' not in combinedArgs.keys():
+        combinedArgs['-p'] = False
+    if '-u' not in combinedArgs.keys():
+        combinedArgs['-u'] = ""
+    if combinedArgs['-u'] != "":
+        pass
+
+    coin = parseCoinStr(combinedArgs['-c'])
+    if coin != (0, 'np'):
+        if isRemove:
+            coin = (coin[0] * -1, coin[1])
+        return modPurse(userId, coin, combinedArgs['-p'])
+    else:
+        return f"{combinedArgs['-c']} is not a valid coin!"
+
 def parseCoinStr(coinStr):
     
     coinStr = coinStr.strip()
@@ -177,23 +195,23 @@ def parseCoinStr(coinStr):
     copper = 0
     if coin[1] in ['gp', 'sp', 'cp']:
         isInt = intTryParse(coin[0])
-        if isInt[0]:
+        if isInt[1]:
             coin = (isInt[0], coin[1])
-            copper = getCoinAsCopper(coin)
-            return sumCopper(copper)
+
+            return coin
         else:
-            return 0
+            return (0, 'np')
     else:
-        return 0
+        return (0, 'np')
 
 def divideItemWorth(totalWorth: int, totalStock: int):
     return totalWorth / totalStock
 
-def depositCoin(userId:str, coin:tuple, moveToPrivate):
+def depositCoin(userId:str, coin:tuple, toPrivate = False):
     purseDict = DndAssets.purseDict
     purseTo = ""
     purseFrom = ""
-    if moveToPrivate:
+    if toPrivate:
         purseTo = "private"
         purseFrom = "public"
     else:
@@ -211,6 +229,45 @@ def depositCoin(userId:str, coin:tuple, moveToPrivate):
     
     DndAssets.purseDict = purseDict
     return f"Moved {formatCoin(coin)} from {purseFrom} to {purseTo} (it now hjas {formatCoin(totalCoin)}"
+
+def convertCoin(userId, coin, convertTo, isPrivate = False):
+    purseDict = DndAssets.purseDict
+    coinRates = DndAssets.coinRates
+    visibility = ""
+    coinPieceList =  DndAssets.coinPieceList
+    convertedCoin = ()
+    if isPrivate:
+        visibility = "private"
+    else:
+        visibility = "public"
+
+    if canAfford(userId, coin, visibility):
+        if coinPieceList.index(coin[1]) < coinPieceList.index(coinPieceList):
+            result = coin[0] / coinRates[convertTo]
+            if result % 1 == 0:
+                purseDict[userId][visibility][coin[1]] -= result
+                purseDict[userId][visibility][convertTo] += result
+                DndAssets.purseDict = purseDict
+                return f"Successfully converted {coin[0]}{coin[1]} into {result} "
+            else:
+                return "Could not convert evenly!"
+        else:
+            return "What the fuck kinda coin are you converting"
+    else:
+        return "You cannot afford to convert this!"
+
+def canAfford(userId, coin, visibility):
+    purseDict = DndAssets.purseDict
+    if purseDict[userId][visibility][coin[1]] - coin[0] < 0:
+        return False
+    else:
+        return True
+
+def processConvertCoin():
+    pass 
+
+def processDepositCoin():
+    pass
 
 
 
@@ -250,7 +307,7 @@ def getInv(userid, showFull = False):
             if bag =="":
                 returnStr += f"\n\t**Not in a bag**:"
             else:
-                returnStr += f"\n\t**({bagIds[bag]}){bag}**:"
+                returnStr += f"\n\t**({bagIds[userid][bag]}){bag}**:"
             for (item) in list(invDict[userid].keys()):
                 isPrivate = invDict[userid][item]["private"]
                 itemStock = invDict[userid][item]["stock"]
@@ -287,12 +344,14 @@ def getInv(userid, showFull = False):
         returnStr += f" has no items..."
     return returnStr
 
-def checkDM(ctx, user: discord.user):
+def checkDM(ctx, userName):
     isDmVar = False
+    user = getUser(ctx, userName)
     role = discord.utils.find(lambda r: r.name == 'DM', ctx.message.guild.roles)
     for serverRole in user.roles:
         if role.name.lower() == serverRole.name.lower():
             isDmVar = True
+            break
     return isDmVar
 
 def modItemStock(userId: str, item: str, amount: int):
@@ -340,38 +399,53 @@ def validateArgs(argsDict, argsModels):
     return True, argsDict
 
 #in arg models, --bulk would be a list object
-def combineArgs(argModels, wholeStr, bulkKeyMatch = (), listMode = False):
+def combineArgs(argModels, wholeStr, bulkKeyMatch = ("--bulk","-i"), listMode = False):
     indices= []
     keys = []
     values = []
     bulkValues = ()
+    subStr = ""
+    lastPos = 0
     argsList = list(argModels.keys()).copy()
-    argsListRemove = argsList.copy()
+    if '--bulk' in wholeStr:
+        bulkIndex = argsList.index("--bulk")
+        argsList.insert(0, argsList.pop(bulkIndex))
+        values.append([])
+    else:
+        bulkKeyMatch = ("---","---")
 
     if listMode:
         for i in range (0, wholeStr.count(bulkKeyMatch[1])):
-            argsListRemove.append(bulkKeyMatch[1])
+            argsList.append(bulkKeyMatch[1])
+        for i in range (0, len(argsList)):
+            argsList[i] = f"{argsList[i]}"
+    argsListRemove = argsList.copy()
+    
         
     #split by arguments
     for i in range (0, len(argsList)):
         p = re.compile('|'.join(argsListRemove))
-        m = p.search(wholeStr)
+        m = p.search(wholeStr, lastPos)
         if m:
             indices.append(int(m.span()[0]))
             indices.append(int(m.span()[1]))
+            lastPos = int(m.span()[1])
             argsListRemove.remove(m.group(0))
     
 
     #indices.append(len(wholeStr))
     ##TODO removed a -1 to len, add it back and uncomment above if it breaks
-    for i in range(0,len(indices), 2):
-        for y in range(0,2):
+    ##critical TODO FIX HOLY SHIT ITS BROKE
+    for i in range(0,len(indices)):
+        for y in range(0,1):
             subStr = splitByIndices(
                 wholeStr,
                 indices,
                 i,
                 y)
-            if subStr in argModels:
+            if subStr.isspace() or subStr == '':
+                break
+            elif subStr in list(argModels.keys()):
                 if isinstance(argModels[subStr] , bool):
                     keys.append(subStr)
                     values.append(True)
@@ -381,9 +455,7 @@ def combineArgs(argModels, wholeStr, bulkKeyMatch = (), listMode = False):
                 else:
                     keys.append(subStr)
             else:
-                if keys[-1] == bulkKeyMatch[0]:
-                    if not isinstance(values[-1], list):
-                        values.append([])
+                if keys[-1] == "--bulk":
                     values[-1].append(subStr.rstrip().lstrip())
                 else:
                     values.append(subStr.rstrip().lstrip())
@@ -395,20 +467,25 @@ def combineArgs(argModels, wholeStr, bulkKeyMatch = (), listMode = False):
 #TODO but like low priority, split this into 2 functions, one that validates and one that actually removes w/o checking
 def addItem(userId, itemName, itemValues):
     invDict = DndAssets.inventoryDict
-    item = isItemInInv(itemName)
+    item = isItemInInv(userId, itemName)
+    bagText = ""
     if item[0]:
         invDict[userId][item[1]]["stock"] += itemValues["itemStock"]
         #This is adding its worth to itself
         singleItemWorth = divideItemWorth(invDict[userId][item[1]]["worth"], invDict[userId][item[1]]["stock"])
-        invDict[userId][item[1]]["worth"] = itemValues["itemStock"] * singleItemWorth
+        invDict[userId][item[1]]["worth"] = itemValues["-s"] * singleItemWorth
     else:
-        bag = isBagInInv(itemValues["bag"])
+        bag = isBagInInv(userId, itemValues["-b"])
+        bagText += bag[1]
         invDict[userId][item[1]] = {
-            "private":itemValues["isPrivate"],
-            "stock":itemValues["itemStock"],
+            "private":itemValues["-p"],
+            "stock":itemValues["-s"],
             "bag":bag[1],
-            "worth":itemValues["itemWorth"]
+            "worth":getCoinAsCopper(parseCoinStr(itemValues["-w"]))
         }
+    if bagText == "":
+        bagText = "the inventory"
+    return f"Added {item[1]} to {bagText}!\n"
 
 def addToInv(ctx, userId, itemStr, argModels):
     invDict = DndAssets.inventoryDict
@@ -416,30 +493,39 @@ def addToInv(ctx, userId, itemStr, argModels):
     
     returnStr = ""
 
+    listMode = True
+
+    bulkKeyPair = ()
+
+    listMode = False
+
     if userId not in invDict.keys():
         return "You don't have an inventory! Run inv init to get one!"
+    if re.search('--bulk', itemStr):
+        listMode = True
     
-    combinedArgs = combineArgs(argModels, itemStr)
+    combinedArgs = combineArgs(argModels, itemStr, ('--bulk', '-i'), listMode)
     
     # change validateArgs logic so this whole block isnt needed
     if '-p' not in combinedArgs.keys():
         combinedArgs['-p'] = False
     if '-b' not in combinedArgs.keys():
         combinedArgs['-b'] = ""
-    if '-q' not in combinedArgs.keys():
+    if '-s' not in combinedArgs.keys():
         combinedArgs['-s'] = 1
     if '-w' not in combinedArgs.keys():
         combinedArgs['-w'] = "0cp"
     if '-u' not in combinedArgs.keys():
         combinedArgs['-u'] = ""
-    if '-u' not in combinedArgs.keys():
-        combinedArgs['-u'] = ""
-    if '--bag' not in combinedArgs.keys():
-        combinedArgs['--bag'] = []
+    if '-i' not in combinedArgs.keys():
+        combinedArgs['-i'] = ""
+    if '--bulk' not in combinedArgs.keys():
+        combinedArgs['--bulk'] = []
     else:
         combinedArgs['-i'] = "-i"
     
     if combinedArgs['-u'] != "":
+        combinedArgs['-u'] = combinedArgs['-u'].strip('<@!>')
         if combinedArgs['-u'] in list(invDict.keys()) and checkDM(
                 ctx, ctx.message.author): 
             userId = combinedArgs['-u']
@@ -477,7 +563,6 @@ def splitByIndices(wholeStr, indices, first, second):
     return splitStr
 
 def setUpItem(userId, itemName, validArgs):
-    item = isItemInInv(userId, itemName)
     bag = validArgs['-b']
     itemStock = validArgs['-s']
     isPrivate = validArgs['-p']
@@ -488,7 +573,7 @@ def setUpItem(userId, itemName, validArgs):
         "isPrivate":isPrivate,
         "itemWorth":itemWorth
     }
-    return addItem(userId, item, itemValues)
+    return addItem(userId, itemName, itemValues)
 
 ##TODO what is this. Was this supposed to be used with dm?? Why ctx??
 def getUserInv(ctx, userId:str, showFull = False):
@@ -511,6 +596,8 @@ def tryRemove(ctx, userId, remStr, argModels):
         combinedArgs['-s'] = 1
     if '-b' not in combinedArgs.keys():
         combinedArgs['-b'] = "---"
+    if '-i' not in combinedArgs.keys():
+        combinedArgs['-i'] = "str"
     isValidArgs = validateArgs(combinedArgs, argModels)
 
     if isValidArgs[0]:
@@ -528,38 +615,40 @@ def tryRemove(ctx, userId, remStr, argModels):
             return removeItem(userId, validArgs['-i'],validArgs['-s'])
 
 # Only assumes valid userId
-def removeItem(userId, item, amount= 1, isAll = False):
+def removeItem(userId, itemName, amount= 1, isAll = False):
     invDict = DndAssets.inventoryDict
     returnStr = ""
-    stock = invDict[userId][item]["stock"]
-    bag = invDict[userId][item]["bag"]
-    if isItemInInv(item):
-        invDict[userId][item]["stock"] -= amount
-        if invDict[userId][item]["stock"] >=0 or isAll:
-            del invDict[userId][item]
+    item = isItemInInv(userId, itemName)
+    if item[0]:
+        bag = invDict[userId][itemName]["bag"]
+        invDict[userId][item[1]]["stock"] -= amount
+        stock = invDict[userId][itemName]["stock"]
+        if stock<=0 or isAll:
+            del invDict[userId][item[1]]
             DndAssets.inventoryDict = invDict
-            returnStr = f"Removed all of {item} from {bag}!"
+            returnStr = f"Removed all of {item[1]} from {bag}!"
         else:
-            returnStr = f"Removed {amount} {item}(s) from {bag}! (there is {stock} left)."
+            returnStr = f"Removed {amount} {item[1]}(s) from {bag}! (there is {stock} left)."
+        DndAssets.inventoryDict = invDict
     else:
-        returnStr = f"You don't have {item} in your inventory!"
+        returnStr = f"You don't have {item[1]} in your inventory!"
+    return returnStr
 
-def isItemInInv(userId, item):
+def isItemInInv(userId, itemName):
     invDict = DndAssets.inventoryDict
-    onlyItems = list(invDict[userId][item].keys())
+    onlyItems = list(invDict[userId].keys())
     for i in range(len(onlyItems)):
-        onlyItems[i] = onlyItems[i].lower()
-    if item in onlyItems:
-        return True, item
-    else:
-        return False, item
+        if itemName == onlyItems[i].lower():
+            return True, onlyItems[i]
+    return False, itemName
 
 def togItemVisibility(userId, itemName, isPrivate):
     invDict = DndAssets.inventoryDict
     returnStr = ""
-    item = isItemInInv(itemName)
+    item = isItemInInv(userId, itemName)
     if item[0]:
         invDict[userId][item[1]]["private"] = isPrivate
+        DndAssets.inventoryDict = invDict 
         if invDict[userId][item[1]]["private"]:
             returnStr = f"You hid {item[1]}!"
         else:
@@ -599,10 +688,15 @@ def tryMove(userId, movStr, argModels):
         item = isItemInInv(userId, combinedArgs['-i'])
         if item[0]:
             if combinedArgs['-t'] == "":
-                returnStr += moveItem(userId, combinedArgs['-i'])
+                bag = isBagInInv(userId, combinedArgs['-t'])
+                dupeBags = [sub["bag"] for sub in invDict[userId].values() if "bag" in sub.keys()]
+                bags = list(set(dupeBags))
+                for bagg in bags:
+                    if invDict["userId"][item[1]][bagg] == bag[1]:
+                        returnStr += f"\n{moveItem(userId, item[1], bag)}"
             else:
-                bag = isBagInInv(combinedArgs['-t'])
-                returnStr += moveItem(item[1], bag[1])                
+                bag = isBagInInv(userId, combinedArgs['-t'])
+                returnStr += moveItem(userId, item[1], bag[1])                
         else:
             returnStr += f"You don't have {item[1]}!"
     elif combinedArgs['-f'] != "":
@@ -620,14 +714,14 @@ def dumpBag(userId, fromBag, toBag):
     invDict = DndAssets.inventoryDict
     movedItems = ""
     returnStr = ""
-    toBagText = f"to {toBag}!"
+    toBagText = f"to {toBag[1]}!"
     if toBag == "":
         toBagText = "out of your bag!"
     for item in invDict[userId]:
-        if invDict[userId][item]["bag"] == fromBag:
+        if invDict[userId][item]["bag"] == fromBag[1]:
             movedItems += f"\n\t-{item}"
-            invDict[userId][item]["bag"] = toBag
-    return f"Moved the following items {toBagText}{movedItems}"
+            invDict[userId][item]["bag"] = toBag[1]
+    return f"Moved the following items {toBagText} {movedItems}"
     
 
     ## in this code discover if moving single item or dumping bag, and behave appropriately
@@ -635,29 +729,25 @@ def dumpBag(userId, fromBag, toBag):
 
 def moveItem(userId, item, bag = ""):
     invDict = DndAssets.inventoryDict
-    oldBag = invDict[item]["bag"]
+    oldBag = invDict[userId][item]["bag"]
     if bag != "":
-        isBag = isBagInInv(userId, item)
-        if isBag[0]:
-            invDict[item]["bag"] = isBag[1]
-            DndAssets.inventoryDict = invDict 
-            return f"Moved {item} from {oldBag} to {isBag[1]}!"
-        else:
-            return "Incorrect bag name or id"
+        invDict[userId][item]["bag"] = bag
+        DndAssets.inventoryDict = invDict 
+        return f"Moved {item} from {oldBag} to {bag}!"
     else:
-        invDict[item]["bag"] = ""
+        invDict[userId][item]["bag"] = ""
         DndAssets.inventoryDict = invDict 
         return f"Dumped {item} out of {oldBag}!"
 
-def removeBag(userId, bag):
+def removeBag(userId, bagName):
     invDict = DndAssets.inventoryDict
-    isBag = isBagInInv(userId)
-    if isBag[0]:
+    bag = isBagInInv(userId, bagName)
+    if bag[0]:
         for item in list(invDict[userId].keys()):
-            if invDict[userId][item]["bag"] == isBag[1]:
+            if invDict[userId][item]["bag"] == bag[1]:
                 invDict[userId][item]["bag"] = ""
         DndAssets.inventoryDict = invDict
-        return f"Dumped all items from {bag}!"
+        return f"Dumped all items from {bagName}!"
     else:
         return "Couldn't find bag..."
 
@@ -703,7 +793,7 @@ def getBagById(userId, bagId):
     return foundName
 
 def isBagInInv(userId, bag):
-    invDict = DndAssets.inventoryDicts
+    invDict = DndAssets.inventoryDict
     isBagInt = intTryParse(bag)
     foundBag = (False, bag)
     if isBagInt[1]:
@@ -737,13 +827,21 @@ def addNewBagId(userId, bag):
 
 def errorWhoops(frameinfo):
     return f"Hhhuh something wrong {frameinfo.filename} {frameinfo.lineno}"
-def testyfuncA():
-    return(f"class work!!!")
+
+def testyfunc(string):
+    parser = NoExitParser(description="what is this desc")
+    parser.add_argument("-t", help="test help", nargs='+', action=MyAction)
+    parser.add_argument("-b", help="test help!!!", nargs='+', action=MyAction)
+    huh = parser.parse_args(string.split())
+    return(f"THIS IS THE T'S VALUE:{huh.t} THIS IS THE B'S VALUE:{huh.b}")
 
 def intTryParse(value):
-    try:
-        return int(value), True
-    except ValueError:
+    if value != '':
+        try:
+            return int(value), True
+        except ValueError:
+            return value, False
+    else:
         return value, False
 
 def findByKey(data, target):
@@ -768,7 +866,7 @@ def userInit(userId: str):
     purseDict = DndAssets.purseDict
     bagIds = DndAssets.bagIds
 
-    if user not in list(invDict.keys()):
+    if userId not in list(invDict.keys()):
         invDict[userId] = {}
         purseDict[userId] = {
             "public":{
@@ -783,6 +881,20 @@ def userInit(userId: str):
             }
         }
         bagIds[userId] = {"--bagNum":0}
+        DndAssets.inventoryDict = invDict
+        DndAssets.purseDict = purseDict
+        DndAssets.bagIds = bagIds
         return "Initialized!!"
     else:
         return "You already have an inventory dumby"
+
+
+class NoExitParser(argparse.ArgumentParser):
+    def error(self, message):
+        raise ValueError(message)
+
+
+# https://stackoverflow.com/questions/34256250/parsing-a-string-with-spaces-from-command-line-in-python
+class MyAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, ' '.join(values))

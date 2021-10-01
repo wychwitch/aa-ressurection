@@ -1,49 +1,135 @@
-ARADIA dnd: 
-    ✔ inv add -i item { -b bag } { -q int } -u user @medium @15m @untested @done(21-09-26 03:02)
+DND bot Phase 1: Programming: 
+    Purpose is to just try and get the basics down and implemented, doesn't matter if it works perfectly or not
     ☐ give command that gives specified user the item, player has to have item to give it @low @created(21-09-25 13:35)
-    ☐ inv del @medium @created(21-09-24 11:34) @untested  
-        Deletes the last message by bot 
-    ☐ inv add --bulk -i item1 -i item2 -i item3 -p @low  @1h
-        bulk item add, optional q with reach one (possibly, worry about that last) into specified bag, also tags all public or private if needed. Will need to have its own function i think. 
     ☐ inv give i- item -u user @low @created(21-09-23 15:40)
-    ☐ inv init {-f}@low @created(21-09-24 03:01) @untested
+    ✔ inv init {-f}@low @created(21-09-24 03:01) @untested @done(21-09-30 00:52)
         Adds user to the inv dict
-    ☐ inv remove -i item { -q int } {-u user } @untested - @high @10m @created(21-09-26 01:25)
-        removes item from inventory, easy
-    ☐ inv remove -b bag { -d } { user } @untested  @high @10m
-        removes bag from all items, if -d is passed destroys items in bag as well 
-    ☐ inv mod -i item, {-n name} {-b bag} { -u user } @high  @15m
+    ☐ inv mod -i item, {-n name} {-b bag} { -u user } @low  
         make sure that -p flip bool when modifying item
-    ☐ inv hide -i item (or -b bag) @untested @created(21-09-25 16:00)
-        sets single item or all items in bag to private
-    ☐ inv unhide -i item (or -b bag) @untested @created(21-09-25 16:00)
-        sets single item or all items in bag to public
-    ☐ int move -i item {-b bag} @high @untested   @created(21-09-25 15:59)
-        Moves item to the bag, or just out of bag if no bag is supplied
-    ☐ inv dump -f bag  {-t bag} { -u user } @untested  @high @15m
-        Moves all items From bag To bag
-    ☐ Rename discordprint to dprint and replace all send messages with the discord print funct @low @created(21-09-24 11:36)
-    ✔ make bag index json  and save each users bag index to use instead of name(display too) @backend finished   @low @created(21-09-24 20:10) @done(21-09-27 00:45)
-    
-    ☐ Test for input error handling + good error reporting @low @created(21-09-23 13:31) @3h
     ☐ Add function to move money in and out of private and public purses @low @created(21-09-25 21:48)
-    ☐ Comment EVERYTHING so I can tell what does what later @low @created(21-09-23 13:32) @1h
+    ☐ Add a coin convert -f 10sp -t gp command @created(21-09-27 20:40)
+        if not enough to convert into a higher total cleanly, dont do anything and tell the user
+
+
+DND bot phase 3: Refactoring:
+    The point of this phase is to re-refactor code so it makes sense, AND works with the new naming standards so in the next phase (and launch) my life is Easier
+    ☐ Comment wherever I notice something could be explained @created(21-09-27 13:36)
+    ☐ Split any repeated actions (such as checking for something) into its own func @created(21-09-27 14:05)
+        Unless its really small, like userId in listKeys
+    ☐ item / coin (strings) = itemStr/coinSit @created(21-09-27 13:25)
+        item, coin, and bag vars are now always tuples Item(Bool, String) Coin(float, string) Bag(Bool, String)
+    ☐ flip intTryParse tuple values (Bool, value) @created(21-09-27 13:55)
+        ☐ adjust everywhere it's used @created(21-09-27 13:55)
+    ☐ rename the try commands to process (except tryIntParse) @created(21-09-27 20:41)
+        so tryHide would be processHideCmd
+    ☐ use dPrint
+    ☐ userId not userid, and should always be plain str @created(21-09-27 13:56)
+
+DND bot phase 4: Proper error handling:
+    Purpose is to enable bot to not only handle errors as they pop up, but to also properly inform the user of said errors
+    ☐ consider using the errorWhoops command as a placeholder, at least in areas where the user SHOULDNT get to @created(21-09-27 13:50)
+    ☐ Consider using TRY / EXCEPT pairings to handle some invalid args.  @created(21-09-27 13:53)
+    ☐ Test each command by deliberately failing in every way I can think of @created(21-09-27 13:57)
+        Make sure that validateArgs spits out the arg that made it fail
+        ☐ inv @created(21-09-27 13:37)
+            ☐ -f @created(21-09-27 14:03)
+        ☐ add @created(21-09-27 01:17)
+            ☐ -i (required) @created(21-09-27 13:59)
+            ☐ -b @created(21-09-27 01:17)
+            ☐ -s @created(21-09-27 01:17)
+            ☐ -p @created(21-09-27 01:17)
+            ☐ -w @created(21-09-27 01:17)
+            ☐ -u @created(21-09-27 01:17)
+            ☐ --bulk @created(21-09-27 01:17)
+        ☐ init @created(21-09-27 01:17)
+        ☐ remove @created(21-09-27 01:17)
+            ☐ -i (i or b is required) @created(21-09-27 01:17)
+            ☐ -s @created(21-09-27 01:17)
+            ☐ -u @created(21-09-27 01:17)
+            ☐ -b @created(21-09-27 01:17)
+        ☐ hide @created(21-09-27 01:17)
+            ☐ -i @created(21-09-27 14:00)
+            ☐ -b @created(21-09-27 14:00)
+        ☐ unhide @created(21-09-27 01:17)
+            ☐ -i @created(21-09-27 14:00)
+            ☐ -b @created(21-09-27 14:00)
+        ☐ move @created(21-09-27 01:17)
+            ☐ -i @created(21-09-27 01:17)
+            ☐ -t @created(21-09-27 01:17)
+        ☐ dump @created(21-09-27 01:17)
+            ☐ -f @created(21-09-27 01:17)
+            ☐ -t @created(21-09-27 01:17)
+        ☐ coin @created(21-09-27 01:17)
+            ☐ -f @created(21-09-27 13:38)
+            ☐ add @created(21-09-27 01:17)
+            ☐ remove @created(21-09-27 01:17)
 
 Aradia General:
     ☐ Add quote authors @1h
     ☐ Also clean and comment code GOD @2h
 
 Archive:  
-  ✔ inv add -i item -w [1yp/1 yp] @high @30m @done(21-09-25 15:56) @project(ARADIA dnd)
-    add an item with specified worth. Will need a function to parse the "1gp / 1 gp" as tuple (1, "gp")
-  ✔ inv {get} displays worth (all (public or private)item worth + (public or private)gp) @medium @30m @done(21-09-25 04:05) @project(ARADIA dnd)
-  ✔ Make (or find) a function that easily takes string and sends to the channel, and make it where it stores the last message in a global variable. @medium @created(21-09-25 04:03) @done(21-09-25 04:03) @project(ARADIA dnd)
-  ✔ move the majority of the script to their own script files and import them @medium @created(21-09-24 18:02) @done(21-09-25 04:04) @project(ARADIA dnd)
-    (its way way too hard to keep track)
-  ✔ Implement the bew getCoinStr command @high @created(21-09-24 15:03) @done(21-09-24 19:09) @project(ARADIA dnd)
-  ✔ Add worth var to inv json items @high @created(21-09-23 15:36) @done(21-09-24 01:35) @project(ARADIA dnd)
-  ✔ inv get user {-f} @high @15m @done(21-09-24 00:58) @project(ARADIA dnd)
-    (gets and displays the inventory of other user (dm can show full inventory with -f)
-  ✔ Fix item pair logic so if the argument is a bool, don't attach to previous / dont attach to next @critical @45 @done(21-09-23 15:34) @project(ARADIA dnd)
-  ✔ PLEASE save the python arg parsing function in snibox for myself later holy shit please, and try your hand at making one in c# if you cant find a better one (or library) online @critical   @created(21-09-23 13:33) @done(21-09-23 15:34) @project(ARADIA dnd)
-    
+  ✔ coin @created(21-09-27 01:17) @done(21-09-30 00:51) @project(DND bot phase 2: Debugging)
+  ✔ -f @created(21-09-27 13:38) @done(21-09-30 00:51) @project(DND bot phase 2: Debugging)
+  ✔ add @created(21-09-27 01:17) @done(21-09-30 00:51) @project(DND bot phase 2: Debugging)
+  ✔ remove @created(21-09-27 01:17) @done(21-09-30 00:51) @project(DND bot phase 2: Debugging)
+  ✔ inv @created(21-09-27 13:37) @done(21-09-30 00:03) @project(DND bot phase 2: Debugging)
+  ✔ add @created(21-09-27 01:17) @done(21-09-28 02:08) @project(DND bot phase 2: Debugging)
+  ✔ -i @created(21-09-27 01:17) @done(21-09-30 00:03) @project(DND bot phase 2: Debugging)
+  ✔ -t @created(21-09-27 01:17) @done(21-09-30 00:03) @project(DND bot phase 2: Debugging)
+  ✔ dump @created(21-09-27 01:17) @done(21-09-30 00:03) @project(DND bot phase 2: Debugging)
+  ✔ -f @created(21-09-27 01:17) @done(21-09-30 00:03) @project(DND bot phase 2: Debugging)
+  ✔ -t @created(21-09-27 01:17) @done(21-09-30 00:03) @project(DND bot phase 2: Debugging)
+  ✔ -i @created(21-09-27 14:00) @done(21-09-29 01:13) @project(DND bot phase 2: Debugging)
+  ✔ -b @created(21-09-27 14:00) @done(21-09-29 01:13) @project(DND bot phase 2: Debugging)
+  ✔ unhide @created(21-09-27 01:17) @done(21-09-29 01:13) @project(DND bot phase 2: Debugging)
+  ✔ -i @created(21-09-27 14:00) @done(21-09-29 01:13) @project(DND bot phase 2: Debugging)
+  ✔ -b @created(21-09-27 14:00) @done(21-09-29 01:13) @project(DND bot phase 2: Debugging)
+  ✔ move @created(21-09-27 01:17) @done(21-09-30 00:03) @project(DND bot phase 2: Debugging)
+  ✔ remove @created(21-09-27 01:17) @done(21-09-28 21:40) @project(DND bot phase 2: Debugging)
+  ✔ -i @created(21-09-27 01:17) @done(21-09-28 21:40) @project(DND bot phase 2: Debugging)
+  ✔ -s @created(21-09-27 01:17) @done(21-09-28 21:40) @project(DND bot phase 2: Debugging)
+  ✔ -u @created(21-09-27 01:17) @done(21-09-28 21:46) @project(DND bot phase 2: Debugging)
+  ✔ -b @created(21-09-27 01:17) @done(21-09-28 21:40) @project(DND bot phase 2: Debugging)
+  ✔ hide @created(21-09-27 01:17) @done(21-09-29 01:13) @project(DND bot phase 2: Debugging)
+  ✔ --bulk @created(21-09-27 01:17) @done(21-09-28 02:07) @project(DND bot phase 2: Debugging)
+  ✔ init @created(21-09-27 01:17) @done(21-09-28 21:15) @project(DND bot phase 2: Debugging)
+  ✔ -w @created(21-09-27 01:17) @done(21-09-28 00:10) @project(DND bot phase 2: Debugging)
+  ✔ -u @created(21-09-27 01:17) @done(21-09-28 00:19) @project(DND bot phase 2: Debugging)
+  ✔ -s @created(21-09-27 01:17) @done(21-09-28 00:01) @project(DND bot phase 2: Debugging)
+  ✔ -p @created(21-09-27 01:17) @done(21-09-28 00:07) @project(DND bot phase 2: Debugging)
+  ✔ -i @created(21-09-27 23:50) @done(21-09-27 23:50) @project(DND bot phase 2: Debugging)
+  ✔ -b @created(21-09-27 01:17) @done(21-09-27 23:52) @project(DND bot phase 2: Debugging)
+  ✔ inv hide -i item (or -b bag) @untested @created(21-09-25 16:00) @done(21-09-27 13:34) @project(DND bot Phase 1: Programming)
+    sets single item or all items in bag to private
+  ✔ inv unhide -i item (or -b bag) @untested @created(21-09-25 16:00) @done(21-09-27 13:34) @project(DND bot Phase 1: Programming)
+    sets single item or all items in bag to public
+  ✔ int move -i item {-b bag} @high @untested   @created(21-09-25 15:59) @done(21-09-27 13:34) @project(DND bot Phase 1: Programming)
+    Moves item to the bag, or just out of bag if no bag is supplied
+  ✔ inv dump -f bag  {-t bag} { -u user } @untested  @high @15m @done(21-09-27 13:34) @project(DND bot Phase 1: Programming)
+    Moves all items From bag To bag
+  ✔ inv add --bulk -i item1 -i item2 -i item3 -p @low  @1h @done(21-09-27 13:33) @project(DND bot Phase 1: Programming)
+    bulk item add, optional q with reach one (possibly, worry about that last) into specified bag, also tags all public or private if needed. Will need to have its own function i think. 
+  ✔ inv remove -i item { -q int } {-u user } @untested - @high @10m @created(21-09-26 01:25) @done(21-09-27 13:33) @project(DND bot Phase 1: Programming)
+    removes item from inventory, easy
+  ✔ inv remove -b bag { -d } { user } @untested  @high @10m @done(21-09-27 13:33) @project(DND bot Phase 1: Programming)
+    removes bag from all items, if -d is passed destroys items in bag as well 
+  ✔ inv del @medium @created(21-09-24 11:34) @untested @done(21-09-27 13:32) @project(DND bot Phase 1: Programming)
+    Deletes the last message by bot 
+  ✔ inv @created(21-09-27 01:17) @done(21-09-27 02:20) @project(DND bot phase 2: Debugging)
+  ✔ -i @created(21-09-27 01:17) @done(21-09-27 02:20) @project(DND bot phase 2: Debugging)
+  ✔ inv add -i item { -b bag } { -q int } -u user @medium @15m @untested @done(21-09-26 03:02) @project(DND bot Phase 1: Programming)
+  ✔ make bag index json  and save each users bag index to use instead of name(display too) @backend finished   @low @created(21-09-24 20:10) @done(21-09-27 00:45) @project(DND bot Phase 1: Programming)
+    ✔ inv add -i item -w [1yp/1 yp] @high @30m @done(21-09-25 15:56) @project(ARADIA dnd)
+        add an item with specified worth. Will need a function to parse the "1gp / 1 gp" as tuple (1, "gp")
+    ✔ inv {get} displays worth (all (public or private)item worth + (public or private)gp) @medium @30m @done(21-09-25 04:05) @project(ARADIA dnd)
+    ✔ Make (or find) a function that easily takes string and sends to the channel, and make it where it stores the last message in a global variable. @medium @created(21-09-25 04:03) @done(21-09-25 04:03) @project(ARADIA dnd)
+    ✔ move the majority of the script to their own script files and import them @medium @created(21-09-24 18:02) @done(21-09-25 04:04) @project(ARADIA dnd)
+        (its way way too hard to keep track)
+    ✔ Implement the bew getCoinStr command @high @created(21-09-24 15:03) @done(21-09-24 19:09) @project(ARADIA dnd)
+    ✔ Add worth var to inv json items @high @created(21-09-23 15:36) @done(21-09-24 01:35) @project(ARADIA dnd)
+    ✔ inv get user {-f} @high @15m @done(21-09-24 00:58) @project(ARADIA dnd)
+        (gets and displays the inventory of other user (dm can show full inventory with -f)
+    ✔ Fix item pair logic so if the argument is a bool, don't attach to previous / dont attach to next @critical @45 @done(21-09-23 15:34) @project(ARADIA dnd)
+    ✔ PLEASE save the python arg parsing function in snibox for myself later holy shit please, and try your hand at making one in c# if you cant find a better one (or library) online @critical   @created(21-09-23 13:33) @done(21-09-23 15:34) @project(ARADIA dnd)
+        

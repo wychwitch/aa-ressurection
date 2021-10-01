@@ -5,7 +5,7 @@ import re
 import json
 import argparse
 import shlex
-from InventoryModule import *    
+from InventoryModule import *  
 import DndAssets
 import re
 import discord
@@ -85,10 +85,10 @@ async def bot_quit(ctx):
 async def on_ready():
     print(f"Discord.py v {discord.__version__} \nQuoteBot v{VERSION} We have logged in as {bot.user}")
 
-@bot.command(name = "test",pass_context=True)
-async def test(ctx):
+@bot.command(name = "test", pass_context=True)
+async def test(ctx, *, string):
     await dPrint(ctx, 
-    f"{testyfuncB()}")
+    f"{testyfunc(string)}")
 
 
 async def send_dm(member: discord.Member, content):
@@ -204,23 +204,24 @@ async def inventoryDictAdd(ctx, *, itemStr: str):
 
 @invCMD.command(name="init", aliases=["start"], pass_context = True)
 async def invCMDInit(ctx):
-    return userInit(str(ctx.message.author.id))
+    await dPrint(ctx,userInit(str(ctx.message.author.id)))
+    print(DndAssets.inventoryDict.keys())
 
 @invCMD.command(name="remove", aliases=["rem", "del", "delete"], pass_context = True)
 async def invCMDDelete(ctx, *, remStr:str):
     userId = str(ctx.message.author.id)
     returnStr = ""
-    argModels = {'-i':'str', '-s':1, '-u':"stt", '-b':'str'}
+    argModels = {'-i':'str', '-s':1, '-u':"str", '-b':'str'}
     returnStr = tryRemove(ctx, userId, remStr, argModels)
     await dPrint(ctx, returnStr)
 
 @invCMD.command(name="hide", pass_context = True)
-async def invCMDDHide(ctx, target, targetName):
+async def invCMDDHide(ctx, target, *, targetName):
     userId = str(ctx.message.author.id)
     await dPrint(ctx, tryHideCommand(userId, target, targetName, True))
 
 @invCMD.command(name="unhide", pass_context = True)
-async def invCMDDHide(ctx, target, targetName):
+async def invCMDDHide(ctx, target, *, targetName):
     userId = str(ctx.message.author.id)
     await dPrint(ctx, tryHideCommand(userId, target, targetName, False))
 
@@ -230,19 +231,19 @@ async def invCMDDHide(ctx, *, movStr:str):
     returnStr = ""
     argModels = {'-i':'str', '-t':'str'}
     returnStr = tryMove(userId, movStr, argModels)
+    await dPrint(ctx, returnStr)
 
 @invCMD.command(name="dump", pass_context = True)
 async def invCMDDHide(ctx, *, movStr:str):
     userId = str(ctx.message.author.id)
-    returnStr = ""
-    argModels = {'-b':'str', '-t':'str'}
-    returnStr = tryMove(userId, movStr, argModels)
+    argModels = {'-f':'str', '-t':'str'}
+    await dPrint(ctx, tryMove(userId, movStr, argModels))
 
 
 ## COIN
 
 @bot.group(aliases=["coin", "c"], pass_context=True)
-async def coinCMD(ctx, fullArg = ""):
+async def coinCMD(ctx):
     returnStr = ""
     if ctx.invoked_subcommand is None:
         returnStr += getFormattedWealth(str(ctx.author.id))
@@ -257,30 +258,16 @@ async def privCoinCMD(ctx):
     await ctx.channel.send(returnStr)
 
 @coinCMD.command(aliases=["add", "a"], pass_context=True)
-async def addCoinCMD(ctx, amount, coin, private = "", user=None):
-    returnStr = ""
-    if not user:
-        user = ctx.message.author
-    userId = str(user.id)
-    cointTryInt = intTryParse(amount)
-    if not cointTryInt[1] or cointTryInt[0] < 0:
-        returnStr += f"<@{userId}> You need to provide a valid positive int!"
-    else:
-        returnStr += modPurse(cointTryInt[0],coin,private,userId)
-    await ctx.channel.send(returnStr)
+async def addCoinCMD(ctx, *, commandStr):
+    userId = str(ctx.message.author.id)
+    argModels = {'-c':'np', '-p':True, '-u':'str'}
+    await ctx.channel.send(processModCoin(userId, commandStr, argModels))
 
 @coinCMD.command(aliases=["remove", "r"], pass_context=True)
-async def reCoinCMD(ctx, amount, coin, private = "", user=None):
-    returnStr = ""
-    if not user:
-        user = ctx.message.author
-    userId = str(user.id)
-    cointTryInt = intTryParse(amount)
-    if not cointTryInt[1]:
-        returnStr += f"<@{userId}> You need to provide a valid int!"
-    else:
-        returnStr += modPurse((-1 * abs(cointTryInt[0])),coin,private,userId)
-    await ctx.channel.send(returnStr)
+async def reCoinCMD(ctx, *, commandStr):
+    userId = str(ctx.message.author.id)
+    argModels = {'-c':'np', '-p':True, '-u':'str'}
+    await ctx.channel.send(processModCoin(userId, commandStr, argModels, True))
     
 
 

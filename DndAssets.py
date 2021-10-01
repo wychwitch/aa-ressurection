@@ -6,18 +6,26 @@ __all__ = [
     "inventoryDict",
     "purseDict",
     "bagIds",
-    "coinPieceList"
+    "coinPieceList",
+    "coinRates"
     ]
 import json
 
 inventoryDict = {}
 purseDict = {}
 coinPieceList = ["gp", "sp", "cp"]
+coinRates = {
+    'gpRate':{'gp':1, 'sp':10, 'cp':1000},
+    'spRate':{'gp':10,'sp':1, 'cp':100},
+    'cpRate':{'gp':1000, 'sp':100, 'cp':1},
+
+}
 bagIds = {}
 
 def init():
     global inventoryDict
     global purseDict
+    global bagIds
     with open("json/inventory.json") as inv_file:
         inventoryDict = dict(json.load(inv_file))
     with open("json/coin.json") as purse_file:
