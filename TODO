@@ -13,6 +13,7 @@ DND bot Phase 1: Programming:
 
 DND bot phase 3: Refactoring:
     The point of this phase is to re-refactor code so it makes sense, AND works with the new naming standards so in the next phase (and launch) my life is Easier
+    rewrite all the arguments to use argparse instead. It mostly is fine but goddamn bulk took em a bit
     ☐ Comment wherever I notice something could be explained @created(21-09-27 13:36)
     ☐ Split any repeated actions (such as checking for something) into its own func @created(21-09-27 14:05)
         Unless its really small, like userId in listKeys

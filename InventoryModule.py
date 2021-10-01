@@ -830,10 +830,14 @@ def errorWhoops(frameinfo):
 
 def testyfunc(string):
     parser = NoExitParser(description="what is this desc")
-    parser.add_argument("-t", help="test help", nargs='+', action=MyAction)
+    parser.set_defaults(my_list=[])
+    parser.add_argument("-t", "--test", help="test help", nargs='+', action=MyAction)
     parser.add_argument("-b", help="test help!!!", nargs='+', action=MyAction)
+    parser.add_argument("-i", help="test help!!!", nargs='+', action=MyAppend)
+    parser.add_argument("-p", help="test help!!!", default=False, action='store_true')
+
     huh = parser.parse_args(string.split())
-    return(f"THIS IS THE T'S VALUE:{huh.t} THIS IS THE B'S VALUE:{huh.b}")
+    return(f"THIS IS THE T'S VALUE:{huh.test} THIS IS THE B'S VALUE:{huh.b} is this?? {huh.p}\n\n i: {huh.i}")
 
 def intTryParse(value):
     if value != '':
@@ -888,7 +892,6 @@ def userInit(userId: str):
     else:
         return "You already have an inventory dumby"
 
-
 class NoExitParser(argparse.ArgumentParser):
     def error(self, message):
         raise ValueError(message)
@@ -898,3 +901,44 @@ class NoExitParser(argparse.ArgumentParser):
 class MyAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, ' '.join(values))
+
+class MyAppend(argparse.Action):
+    def __init__(self,
+                 option_strings,
+                 dest,
+                 nargs=None,
+                 const=None,
+                 default=None,
+                 type=None,
+                 choices=None,
+                 required=False,
+                 help=None,
+                 metavar=None):
+        super(MyAppend, self).__init__(
+            option_strings=option_strings,
+            dest=dest,
+            nargs=nargs,
+            const=const,
+            default=default,
+            type=type,
+            choices=choices,
+            required=required,
+            help=help,
+            metavar=metavar)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        items = getattr(namespace, self.dest, None)
+        items = my_copy_items(items)
+        items.append(' '.join(values))
+        setattr(namespace, self.dest, items)
+
+def my_copy_items(items):
+    if items is None:
+        return []
+    # The copy module is used only in the 'append' and 'append_const'
+    # actions, and it is needed only when the default value isn't a list.
+    # Delay its import for speeding up the common case.
+    if type(items) is list:
+        return items[:]
+    import copy
+    return copy.copy(items)
