@@ -167,11 +167,11 @@ async def invCMDFull(ctx, userStr = ""):
     userId = str(ctx.message.author.id)
 
     if userStr != "" and checkDM(ctx, ctx.message.author):
-        returnStr += getUserInv(ctx, userStr, True)
+        returnStr += getInv(ctx, userStr, True)
     elif userId in list(DndAssets.inventoryDict.keys()):
         returnStr += getInv(userId, True)
     else:
-        returnStr += "Wuh oh"
+        returnStr += "ping chair smth broke"
 
     await dPrint(ctx,returnStr)
 
@@ -184,21 +184,19 @@ async def invCMDGet(ctx, userMention, showFull = ""):
         isShowFull = checkDM(ctx, ctx.message.author)
 
     if userId in list(DndAssets.inventoryDict.keys()):
-        returnStr += getUserInv(ctx, userId, isShowFull)
+        returnStr += getInv(ctx, userId, isShowFull)
     else:
-        returnStr += "Wuh oh"
+        returnStr += "ping chair smth broke"
     await dPrint(ctx,returnStr)
 
 @invCMD.command(name="add", pass_context=True)
 async def inventoryDictAdd(ctx, *, itemStr: str):
     userId = str(ctx.message.author.id)
     returnStr = ""
-    argModels = {'-b':"str",'-i':"str",'-s':1,'-p':False, '-w':"str", '-u':"str", "--bulk":[]}
-
-    returnStr = addToInv(ctx, userId, itemStr, argModels)
+    returnStr = processAddItem(ctx, userId, itemStr)
     
     if returnStr == "":
-        await dPrint(ctx, "something went wrong")
+        await dPrint(ctx, "ping chair smth broke")
     else:
         await dPrint(ctx, returnStr)
 
@@ -207,37 +205,35 @@ async def invCMDInit(ctx):
     await dPrint(ctx,userInit(str(ctx.message.author.id)))
     print(DndAssets.inventoryDict.keys())
 
+
 @invCMD.command(name="remove", aliases=["rem", "del", "delete"], pass_context = True)
 async def invCMDDelete(ctx, *, remStr:str):
     userId = str(ctx.message.author.id)
     returnStr = ""
-    argModels = {'-i':'str', '-s':1, '-u':"str", '-b':'str'}
-    returnStr = tryRemove(ctx, userId, remStr, argModels)
+    returnStr = processRemoveItem(ctx, userId, remStr)
     await dPrint(ctx, returnStr)
 
 @invCMD.command(name="hide", pass_context = True)
-async def invCMDDHide(ctx, target, *, targetName):
+async def invCMDDHide(ctx, *, hideStr):
     userId = str(ctx.message.author.id)
-    await dPrint(ctx, tryHideCommand(userId, target, targetName, True))
+    await dPrint(ctx, processHideItem(ctx, userId, hideStr, True))
 
 @invCMD.command(name="unhide", pass_context = True)
 async def invCMDDHide(ctx, target, *, targetName):
     userId = str(ctx.message.author.id)
-    await dPrint(ctx, tryHideCommand(userId, target, targetName, False))
+    await dPrint(ctx, processHideItem(userId, target, targetName, False))
 
 @invCMD.command(name="move", pass_context = True)
 async def invCMDDHide(ctx, *, movStr:str):
     userId = str(ctx.message.author.id)
     returnStr = ""
-    argModels = {'-i':'str', '-t':'str'}
-    returnStr = tryMove(userId, movStr, argModels)
+    returnStr = processMoveItem(userId, movStr)
     await dPrint(ctx, returnStr)
 
 @invCMD.command(name="dump", pass_context = True)
 async def invCMDDHide(ctx, *, movStr:str):
     userId = str(ctx.message.author.id)
-    argModels = {'-f':'str', '-t':'str'}
-    await dPrint(ctx, tryMove(userId, movStr, argModels))
+    await dPrint(ctx, processDumpBag(userId, movStr))
 
 
 ## COIN
@@ -260,14 +256,22 @@ async def privCoinCMD(ctx):
 @coinCMD.command(aliases=["add", "a"], pass_context=True)
 async def addCoinCMD(ctx, *, commandStr):
     userId = str(ctx.message.author.id)
-    argModels = {'-c':'np', '-p':True, '-u':'str'}
-    await ctx.channel.send(processModCoin(userId, commandStr, argModels))
+    await ctx.channel.send(processModCoin(userId, commandStr, False))
 
 @coinCMD.command(aliases=["remove", "r"], pass_context=True)
 async def reCoinCMD(ctx, *, commandStr):
     userId = str(ctx.message.author.id)
-    argModels = {'-c':'np', '-p':True, '-u':'str'}
-    await ctx.channel.send(processModCoin(userId, commandStr, argModels, True))
+    await ctx.channel.send(processModCoin(userId, commandStr, True))
+    
+@coinCMD.command(aliases=["transfer", "trans"], pass_context=True)
+async def transferCoinCMD(ctx, *, commandStr):
+    userId = str(ctx.message.author.id)
+    await ctx.channel.send(processTransferCoin(userId, commandStr, False))
+
+@coinCMD.command(aliases=["convert", "con"], pass_context=True)
+async def convertCoinCMD(ctx, *, commandStr):
+    userId = str(ctx.message.author.id)
+    await ctx.channel.send(processConvertCoin(userId, commandStr, True))
     
 
 

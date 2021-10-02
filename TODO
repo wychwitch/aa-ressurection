@@ -13,18 +13,24 @@ DND bot Phase 1: Programming:
 
 DND bot phase 3: Refactoring:
     The point of this phase is to re-refactor code so it makes sense, AND works with the new naming standards so in the next phase (and launch) my life is Easier
-    rewrite all the arguments to use argparse instead. It mostly is fine but goddamn bulk took em a bit
+    ✔ rewrite all the arguments to use argparse instead. It mostly is fine but goddamn bulk took em a bit @created(21-10-01 02:41) @done(21-10-01 22:05)
+    ☐ implement give command @created(21-10-01 15:48)
+    ☐ implement send @created(21-10-01 15:48)
+    ✔ implement convert @created(21-10-01 15:48) @done(21-10-01 22:06)
+    ✔ implement transfer @created(21-10-01 15:48) @done(21-10-01 22:06)
+    ☐ implement mod item command @created(21-10-01 15:49)
     ☐ Comment wherever I notice something could be explained @created(21-09-27 13:36)
+    ☐ add item description field (displays when inv or maybe inv view action??) @created(21-10-01 15:46)
     ☐ Split any repeated actions (such as checking for something) into its own func @created(21-09-27 14:05)
         Unless its really small, like userId in listKeys
     ☐ item / coin (strings) = itemStr/coinSit @created(21-09-27 13:25)
         item, coin, and bag vars are now always tuples Item(Bool, String) Coin(float, string) Bag(Bool, String)
     ☐ flip intTryParse tuple values (Bool, value) @created(21-09-27 13:55)
         ☐ adjust everywhere it's used @created(21-09-27 13:55)
-    ☐ rename the try commands to process (except tryIntParse) @created(21-09-27 20:41)
+    ✔ rename the try commands to process (except tryIntParse) @created(21-09-27 20:41) @done(21-10-01 22:11)
         so tryHide would be processHideCmd
-    ☐ use dPrint
-    ☐ userId not userid, and should always be plain str @created(21-09-27 13:56)
+    ✔ use dPrint @done(21-10-01 22:11)
+    ✔ userId not userid, and should always be plain str @created(21-09-27 13:56) @done(21-10-01 22:11)
 
 DND bot phase 4: Proper error handling:
     Purpose is to enable bot to not only handle errors as they pop up, but to also properly inform the user of said errors
