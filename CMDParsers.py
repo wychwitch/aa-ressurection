@@ -13,24 +13,32 @@ __all__ = [
 
 # PARSERS REMOVE LATER AND PUT IN OWN MODULE
 def invAddCMDParse(parseStr):
-
     parser = NoExitParser(description="Add Command")
+    
     parser.add_argument("-b","--bag", help="test help!!!", nargs='+',
-     default="", required=False, action=MyAction)
+        default="", required=False, action=MyAction)
+    
     if "--bulk" in parseStr:
-        parser.add_argument("--bulk", help="test help!!!", nargs='+',
-         required=False, action=MyAction)
+        parser.add_argument("--bulk", help="test help!!!",
+            required=False, action='store_true')
+
         parser.add_argument("-i","--item", help="test help!!!", nargs='+',
-         required=False, action=MyAppend)
+            required=False, action=MyAppend)
     else:
         parser.add_argument("-i","--item", help="test help!!!", nargs='+',
-         required=False, action=MyAction)
-    parser.add_argument("-p","--private", help="test help!!!", action='store_true')
-    parser.add_argument("-s","--stock", help="test help!!!", nargs='+',
-     default=1, required=False, type=int, action=MyAction)
+            required=False, action=MyAction)
+    
+    parser.add_argument("-p","--private", help="test help!!!", 
+        required=False, action='store_true')
+    
+    parser.add_argument("-s","--stock", help="test help!!!",
+        default=1, required=False, type=int)
+    
     parser.add_argument("-w","--worth", help="test help!!!", nargs='+',
-     default="0cp", required=False, action=MyAction)
-    parser.add_argument("-u","--user", help="test help!!!", required=False, action=MyAction)
+        default="0cp", required=False, action=MyAction)
+    
+    parser.add_argument("-u","--user", help="test help!!!", 
+        required=False, type=str)
 
     return parser.parse_args(parseStr.split())
 
@@ -49,14 +57,11 @@ def invRemCMDParse(parseStr):
     parser.add_argument("-a","--all", 
         help="Removing all of the item!", action='store_true')
 
-    parser.add_argument("-s","--stock", 
-        help="The stock for the item!", 
-        nargs='+', default=1, 
-        required=False, type=int, action=MyAction)
+    parser.add_argument("-s","--stock", help="test help!!!",
+        default=1, required=False, type=int)
 
-    parser.add_argument("-u","--user", 
-        help="test help!!!", 
-        required=False, action=MyAction)
+    parser.add_argument("-u","--user", help="test help!!!", 
+        required=False, type=str)
     return parser.parse_args(parseStr.split())
 
 def invMovCMDParse(parseStr):
@@ -81,7 +86,7 @@ def invHideCMDParse(parseStr):
     parser.add_argument("-b","--bag", help="test help!!!", nargs='+',
      default="", required=False, action=MyAction)
     parser.add_argument("-i","--item", help="test help!!!", nargs='+',
-         required=True, action=MyAction)
+         required=False, action=MyAction)
     parser.add_argument("-u","--user", help="test help!!!", required=False, action=MyAction)
 
     return parser.parse_args(parseStr.split())
@@ -112,7 +117,7 @@ def convertCoinCMDparse(parseStr):
     parser = NoExitParser(description="Add Command")
     parser.add_argument("-f","--from", dest="fromCoin", help="test help!!!", nargs='+',
      default="0np", required=False, action=MyAction)
-    parser.add_argument("-to","--to", dest="fromCoin" ,help="test help!!!", nargs='+',
+    parser.add_argument("-to","--to", dest="toCoin" ,help="test help!!!", nargs='+',
      default="0np", required=False, action=MyAction)
     parser.add_argument("-p","--private", help="test help!!!", 
         required=False, action='store_true')
@@ -128,8 +133,7 @@ def transferCoinCMDparse(parseStr):
     
     parser.add_argument("-t","--toPurse", help="test help!!!", nargs='+', 
         required=False, action=MyAction)
-    parser.add_argument("-f","--fromPurse", help="test help!!!", 
-         required=False, action=MyAction)
+        
     parser.add_argument("-u","--user", help="test help!!!",
          required=False, action=MyAction)
 
@@ -145,6 +149,10 @@ class NoExitParser(argparse.ArgumentParser):
 class MyAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, ' '.join(values))
+
+class MyStripAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, ' '.join(values).strip('@<>'))
 
 class MyAppend(argparse.Action):
     def __init__(self,

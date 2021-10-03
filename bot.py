@@ -184,7 +184,7 @@ async def invCMDGet(ctx, userMention, showFull = ""):
         isShowFull = checkDM(ctx, ctx.message.author)
 
     if userId in list(DndAssets.inventoryDict.keys()):
-        returnStr += getInv(ctx, userId, isShowFull)
+        returnStr += getInv(userId, isShowFull)
     else:
         returnStr += "ping chair smth broke"
     await dPrint(ctx,returnStr)
@@ -219,21 +219,21 @@ async def invCMDDHide(ctx, *, hideStr):
     await dPrint(ctx, processHideItem(ctx, userId, hideStr, True))
 
 @invCMD.command(name="unhide", pass_context = True)
-async def invCMDDHide(ctx, target, *, targetName):
+async def invCMDDHide(ctx, *, hideStr):
     userId = str(ctx.message.author.id)
-    await dPrint(ctx, processHideItem(userId, target, targetName, False))
+    await dPrint(ctx, processHideItem(ctx, userId, hideStr, False))
 
 @invCMD.command(name="move", pass_context = True)
 async def invCMDDHide(ctx, *, movStr:str):
     userId = str(ctx.message.author.id)
     returnStr = ""
-    returnStr = processMoveItem(userId, movStr)
+    returnStr = processMoveItem(ctx, userId, movStr)
     await dPrint(ctx, returnStr)
 
 @invCMD.command(name="dump", pass_context = True)
 async def invCMDDHide(ctx, *, movStr:str):
     userId = str(ctx.message.author.id)
-    await dPrint(ctx, processDumpBag(userId, movStr))
+    await dPrint(ctx, processDumpBag(ctx, userId, movStr))
 
 
 ## COIN
@@ -266,12 +266,12 @@ async def reCoinCMD(ctx, *, commandStr):
 @coinCMD.command(aliases=["transfer", "trans"], pass_context=True)
 async def transferCoinCMD(ctx, *, commandStr):
     userId = str(ctx.message.author.id)
-    await ctx.channel.send(processTransferCoin(userId, commandStr, False))
+    await ctx.channel.send(processTransferCoin(userId, commandStr))
 
 @coinCMD.command(aliases=["convert", "con"], pass_context=True)
 async def convertCoinCMD(ctx, *, commandStr):
     userId = str(ctx.message.author.id)
-    await ctx.channel.send(processConvertCoin(userId, commandStr, True))
+    await ctx.channel.send(processConvertCoin(userId, commandStr))
     
 
 
