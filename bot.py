@@ -189,6 +189,11 @@ async def invCMDGet(ctx, userMention, showFull = ""):
         returnStr += "ping chair smth broke"
     await dPrint(ctx,returnStr)
 
+@invCMD.command(name="-h",  pass_context=True)
+async def invCMDHelp(ctx, userMention, showFull = ""):
+    await dPrint(ctx,"coin displays your current inventory and coinpurse! Pass -f to show your private items and purse too")
+
+
 @invCMD.command(name="add", pass_context=True)
 async def inventoryDictAdd(ctx, *, itemStr: str):
     userId = str(ctx.message.author.id)
@@ -252,6 +257,17 @@ async def privCoinCMD(ctx):
     returnStr = ""
     returnStr += getFormattedWealth(str(userId), True)
     await ctx.channel.send(returnStr)
+
+@coinCMD.command(name="-p", pass_context=True)
+async def privCoinCMD(ctx):
+    userId = str(ctx.author.id)
+    returnStr = ""
+    returnStr += getFormattedWealth(str(userId), False, True)
+    await ctx.channel.send(returnStr)
+
+@coinCMD.command(name="-h", pass_context=True)
+async def privCoinCMD(ctx):
+    await ctx.channel.send(ctx, "Coin shows your current coinpurse! Pass -p just to display your private coinpurse, and -f to show your total coin amount, private and public together!")
 
 @coinCMD.command(aliases=["add", "a"], pass_context=True)
 async def addCoinCMD(ctx, *, commandStr):

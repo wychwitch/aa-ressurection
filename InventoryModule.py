@@ -42,6 +42,9 @@ def processModCoin(userId, commandStr, isRemove= False):
     except Exception as e:
         frameinfo = getframeinfo(currentframe())
         return f"Whoops! ping chair for this error: {e}\n\n{frameinfo.filename} @ line {frameinfo.lineno}"
+    
+    if args.help:
+        return args.help
 
     coin = parseCoinStr(args.coin)
     if coin != (0, 'np'):
@@ -54,12 +57,16 @@ def processModCoin(userId, commandStr, isRemove= False):
 
 def processConvertCoin(userId, commandStr):
     returnStr = ""
+    visibilityText = ""
     try:
          args = convertCoinCMDparse(commandStr)
     except Exception as e:
         frameinfo = getframeinfo(currentframe())
         return f"Whoops! ping chair for this error: {e}\n\n{frameinfo.filename} @ line {frameinfo.lineno}"
-    visibilityText = ""
+    
+    if args.help:
+        return args.help
+    
     if args.private:
         visibilityText = "private"
     else:
@@ -85,6 +92,9 @@ def processTransferCoin(userId, commandStr):
         frameinfo = getframeinfo(currentframe())
         return f"Whoops! ping chair for this error: {e}\n\n{frameinfo.filename} @ line {frameinfo.lineno}"
     
+    if args.help:
+        return args.help
+
     if args.toPurse.lower() == "private":
         isPrivate = True
     elif args.toPurse.lower() == "public":
@@ -94,6 +104,8 @@ def processTransferCoin(userId, commandStr):
     coin = parseCoinStr(args.coin)
     if coin != (0, 'np'):
         returnStr += transferCoin(userId, coin, isPrivate)
+    else:
+        return f"{args.coin} isn't a valid coin!"
     
     return returnStr
 
@@ -159,6 +171,7 @@ def modPurse(userId, coin, private = False):
         purseDict[userId][visibility][coin[1]] += coin[0]
         remainingCoin = (purseDict[userId][visibility][coin[1]], coin[1])
         formattedCoin = formatCoin(remainingCoin)
+        
         if coin[0] < 0:
             returnStr += f"Removed {abs(coin[0])}{coin[1]}. Total {coin[1]} is now {censor}{formattedCoin}{censor}"
         else:
@@ -166,6 +179,7 @@ def modPurse(userId, coin, private = False):
     else:
         returnStr += "Somethings wrong;"
     DndAssets.purseDict = purseDict
+    DndAssets.saveAll()
     return returnStr
 
 def sumItemWorth(userId: str, isFull: bool):
@@ -184,13 +198,17 @@ def sumItemWorth(userId: str, isFull: bool):
             totalItemWorth += itemWorth * itemStock
     return totalItemWorth
 
-def getFormattedWealth(userid: str, isFull = False):
+def getFormattedWealth(userid: str, isFull = False, isPrivate = False):
     purseDict = DndAssets.purseDict
-    returnStr = "Coinpurse Contains:\n"
-    formatStr = ""
+    returnStr = ""
     totalCoin = ()
-    totalCoinCop = 0
     totalItemWorth = sumItemWorth(userid, isFull)
+    if isFull:
+        returnStr += f"Both of <@!{userid}>'s coinpurses contain in total:\n"
+    elif isPrivate:
+        returnStr += f"<@!{userid}>'s private coinpurse contains:\n"
+    else:
+        returnStr += f"<@!{userid}>'s public coinpurse contains:\n"
 
     for coinPiece in DndAssets.coinPieceList:
         pubCoin = (purseDict[userid]["public"][coinPiece],
@@ -201,6 +219,8 @@ def getFormattedWealth(userid: str, isFull = False):
 
         if isFull:
             totalCoin = (pubCoin[0]+privCoin[0], pubCoin[1])
+        elif isPrivate:
+            totalCoin = (privCoin[0], privCoin[1])
         else:
             totalCoin = (pubCoin[0], pubCoin[1])
             
@@ -217,11 +237,9 @@ def getFormattedWealth(userid: str, isFull = False):
     else:
         returnStr += f"\nFor a total of {purseWorth} in coin."
     if totalItemWorth > 0:
-        purseInCopper = getPurseAsCopperInt(
-        userid, isFull
-        )
         formattedItemWorth = formatCoin(sumCopper(totalItemWorth))
-        totalWealth = formatCoin(sumCopper(totalItemWorth + getPurseAsCopperInt(userid, isFull)))
+        totalWealth = formatCoin(sumCopper(totalItemWorth + 
+            getPurseAsCopperInt(userid, isFull)))
 
         returnStr += f"\nCombined with {formattedItemWorth} of treasure in the inventory, total wealth is {totalWealth}."
     return returnStr
@@ -231,12 +249,10 @@ def parseCoinStr(coinStr):
     coinStr = coinStr.strip()
     coin = (coinStr[:-2],coinStr[-2:])
     
-    copper = 0
     if coin[1] in ['gp', 'sp', 'cp']:
         isInt = intTryParse(coin[0])
         if isInt[1]:
             coin = (isInt[0], coin[1])
-
             return coin
         else:
             return (0, 'np')
@@ -267,6 +283,7 @@ def transferCoin(userId:str, coin:tuple, toPrivate = False):
     totalCoin = (purseDict[userId][purseTo][purseCoin[1]], f'{coin[1]}')
     
     DndAssets.purseDict = purseDict
+    DndAssets.saveAll()
     return f"Moved {formatCoin(coin)} from {purseFrom} to {purseTo} (it now hjas {formatCoin(totalCoin)}"
 
 def convertCoin(userId, coin, convertTo, visibility):
@@ -281,6 +298,7 @@ def convertCoin(userId, coin, convertTo, visibility):
             purseDict[userId][visibility][coin[1]] -= coin[0]
             purseDict[userId][visibility][convertTo] += result
             DndAssets.purseDict = purseDict
+            DndAssets.saveAll()
             returnStr += f"Successfully converted {coin[0]}{coin[1]} into {result}{convertTo} "
         else:
             result = coin[0] / coinRates[f"{coin[1]}Rate"][convertTo]
@@ -288,6 +306,7 @@ def convertCoin(userId, coin, convertTo, visibility):
                 purseDict[userId][visibility][coin[1]] -= coin[0]
                 purseDict[userId][visibility][convertTo] += result
                 DndAssets.purseDict = purseDict
+                DndAssets.saveAll()
                 returnStr += f"Successfully converted {coin[0]}{coin[1]} into {int(result)}{convertTo} "
             else:
                 returnStr += "Could not convert evenly!"
@@ -323,20 +342,24 @@ def processHideItem(ctx, userId, itemStr, isPrivate):
         frameinfo = getframeinfo(currentframe())
         return f"Whoops! ping chair for this error: {e}\n\n{frameinfo.filename} @ line {frameinfo.lineno}"
 
+    if args.help:
+        return args.help
+
     if args.user:
         if checkDM(ctx, userId):
             userId = args.user.strip('@<>')
         else:
             return "You arent dm!!"
     if userId not in invDict.keys():
-        returnStr += "You don't have an inventory! Run inv init to get one!"
+        return f"<@!{userId}> doesn't have an inventory! Run inv init to get one!"
     
     if args.item:
         returnStr += setItemVisibility(userId, args.item, isPrivate)
     elif args.bag:
         returnStr += setBagVisibility(userId, args.bag, isPrivate)
     else:
-        returnStr += "Something wernt wrong!! bother chair"
+        frameinfo = getframeinfo(currentframe())
+        return f"Oh!! idek how the fuck you got here but ping chair for me to investigate this info:\n\n{frameinfo.filename} @ line {frameinfo.lineno}"
     return returnStr
 
 def processMoveItem(ctx, userId, movStr):
@@ -350,12 +373,16 @@ def processMoveItem(ctx, userId, movStr):
     except Exception as e:
         frameinfo = getframeinfo(currentframe())
         return f"Whoops! ping chair for this error: {e}\n\n{frameinfo.filename} @ line {frameinfo.lineno}"
+    if args.help:
+        return args.help
     if args.user:
         if checkDM(ctx, userId):
             userId = args.user.strip('@<>')
+        else:
+            return "You aren't a dm!!!"
 
     if userId not in list(invDict.keys()):
-        return "You dont have an inventory! Run init"
+        return f"<@!{userId}> doesn't have an inventory! Run inv init to get one!"
     
     if args.item:
         item = isItemInInv(userId, args.item)
@@ -365,7 +392,7 @@ def processMoveItem(ctx, userId, movStr):
         else:
             returnStr += f"You don't have {item[1]}!"
     else:
-        returnStr += "whayuh"
+        returnStr += "You need to supply an item!! use -i <item name> or --item <item name>"
             
     return returnStr
 
@@ -379,10 +406,15 @@ def processAddItem(ctx, userId, itemStr):
     except Exception as e:
         frameinfo = getframeinfo(currentframe())
         return f"Whoops! ping chair for this error: {e}\n\n{frameinfo.filename} @ line {frameinfo.lineno}"
-
+    
+    if args.help:
+        return args.help
+    
     if args.user:
         if checkDM(ctx, userId):
             userId = args.user.strip('@!<>')
+        else:
+            return "You aren't a dm!!!"
     if args.item:
         if type(args.item) == list:
             for i in range(0, len(args.item)):
@@ -400,10 +432,13 @@ def processRemoveItem(ctx, userId, remStr):
     except Exception as e:
         frameinfo = getframeinfo(currentframe())
         return f"Whoops! ping chair for this error: {e}\n\n{frameinfo.filename} @ line {frameinfo.lineno}"
-
+    if args.help:
+        return args.help
     if args.user:
         if checkDM(ctx, userId):
             userId = args.user.strip('@<!>')
+        else:
+            return "You aren't a dm!!!"
 
     if userId not in invDict.keys():
         return f"@<{userId}> doesn't have an inventory! Run inv init to get one!"
@@ -426,9 +461,13 @@ def processDumpBag(ctx, userId, bagStr):
     except Exception as e:
         frameinfo = getframeinfo(currentframe())
         return f"Whoops! ping chair for this error: {e}\n\n{frameinfo.filename} @ line {frameinfo.lineno}"
+    if args.help:
+        return args.help
     if args.user:
         if checkDM(ctx, userId):
-            userId = args.user.strip('@<>')
+            userId = args.user.strip('@!<>')
+        else:
+            return "You aren't a dm!!!"
 
     if userId not in list(invDict.keys()):
         returnStr += "You dont have an inventory! Run init"
@@ -444,7 +483,7 @@ def processDumpBag(ctx, userId, bagStr):
 def getInv(userid, showFull = False):
     invDict = DndAssets.inventoryDict
     bagIds = DndAssets.bagIds
-    returnStr = f"<@{userid}>"
+    returnStr = f"<@!{userid}>"
     inventoryUsers = list(invDict.keys())
     dupeBags = []
     bags = []
@@ -455,8 +494,6 @@ def getInv(userid, showFull = False):
         bags = list(set(dupeBags))
         bags = sorted(bags, key=lambda s: (not s, s))
         bagText = ""
-        totalItemWorth = 0
-        itemBuffer = ""
 
         for (bag) in bags:
             bagText = ""
@@ -536,6 +573,7 @@ def modItemStock(userId: str, item: str, amount: int):
             returnStr += f"Added {amount} {itemName}(s) to {bag}! (originally had {itemStock})"
 
     DndAssets.inventoryDict = invDict
+    DndAssets.saveAll()
     return returnStr
 
 #TODO but like low priority, split this into 2 functions, one that validates and one that actually removes w/o checking
@@ -562,6 +600,8 @@ def addItem(userId, args, itemName = ""):
         }
     if bagText == "":
         bagText = "the inventory"
+    DndAssets.inventoryDict= invDict
+    DndAssets.saveAll()
     return f"Added {item[1]} to {bagText}!\n"
 
 ## Add this to the add item func
@@ -595,7 +635,8 @@ def removeItem(userId, itemName, amount= 1, isAll = False):
             returnStr = f"Removed all of {item[1]} from {bag}!"
         else:
             returnStr = f"Removed {amount} {item[1]}(s) from {bag}! (there is {stock} left)."
-        DndAssets.inventoryDict = invDict
+        DndAssets.inventoryDict= invDict
+        DndAssets.saveAll()
     else:
         returnStr = f"You don't have {item[1]} in your inventory!"
     return returnStr
@@ -614,7 +655,8 @@ def setItemVisibility(userId, itemName, isPrivate):
     item = isItemInInv(userId, itemName)
     if item[0]:
         invDict[userId][item[1]]["private"] = isPrivate
-        DndAssets.inventoryDict = invDict 
+        DndAssets.inventoryDict= invDict
+        DndAssets.saveAll() 
         if invDict[userId][item[1]]["private"]:
             returnStr = f"You hid {item[1]}!"
         else:
@@ -624,7 +666,6 @@ def setItemVisibility(userId, itemName, isPrivate):
 def dumpBag(userId, fromBag, toBag):
     invDict = DndAssets.inventoryDict
     movedItems = ""
-    returnStr = ""
     toBagText = f"to {toBag}!"
     if toBag == "":
         toBagText = "out of your bag!"
@@ -635,6 +676,8 @@ def dumpBag(userId, fromBag, toBag):
         if checkBag.strip() == fromBag.strip():
             movedItems += f"\n\t-{item}"
             invDict[userId][item]["bag"] = toBag
+    DndAssets.inventoryDict= invDict
+    DndAssets.saveAll()
     return f"Moved the following items {toBagText} {movedItems}"
     
 
@@ -645,11 +688,13 @@ def moveItem(userId, item, bag = ""):
     oldBag = invDict[userId][item]["bag"]
     if bag != "":
         invDict[userId][item]["bag"] = bag
-        DndAssets.inventoryDict = invDict 
+        DndAssets.inventoryDict= invDict
+        DndAssets.saveAll()
         return f"Moved {item} from {oldBag} to {bag}!"
     else:
         invDict[userId][item]["bag"] = ""
-        DndAssets.inventoryDict = invDict 
+        DndAssets.inventoryDict= invDict
+        DndAssets.saveAll() 
         return f"Dumped {item} out of {oldBag}!"
 
 def removeBag(userId, bagName):
@@ -659,7 +704,8 @@ def removeBag(userId, bagName):
         for item in list(invDict[userId].keys()):
             if invDict[userId][item]["bag"] == bag[1]:
                 invDict[userId][item]["bag"] = ""
-        DndAssets.inventoryDict = invDict
+        DndAssets.inventoryDict= invDict
+        DndAssets.saveAll()
         return f"Dumped all items from {bagName}!"
     else:
         return "Couldn't find bag..."
@@ -677,7 +723,8 @@ def setBagVisibility(userId, bag, isPrivate = True):
         for item in list(invDict[userId].keys()):
             if invDict[userId][item]["bag"] == isBag[1]:
                 invDict[userId][item]["private"] = isPrivate
-                DndAssets.inventoryDict = invDict
+                DndAssets.inventoryDict= invDict
+                DndAssets.saveAll()
         return f"All items in {isBag[1]} are now {visiText}!"
     else:
         return "Whoops!"
@@ -685,7 +732,7 @@ def setBagVisibility(userId, bag, isPrivate = True):
 def getBagId(userId, bagName):
     bagIds = DndAssets.bagIds
     bagId = 0
-    foundId = False
+    foundId = False, "None"
     for bag in bagIds[userId]:
         if bagName == str((bag.key())):
             bagId = bag
@@ -743,14 +790,8 @@ def errorWhoops(frameinfo):
     return f"Hhhuh something wrong {frameinfo.filename} {frameinfo.lineno}"
 
 def testyfunc(string):
-    parser = NoExitParser(description="what is this desc")
-    parser.add_argument("-t", "--test", help="test help", nargs='+', action=MyAction)
-    parser.add_argument("-b", help="test help!!!", nargs='+', action=MyAction)
-    parser.add_argument("-i", help="test help!!!", nargs='+', action=MyAppend)
-    parser.add_argument("-p", help="test help!!!", default=False, action='store_true')
-
-    huh = parser.parse_args(string.split())
-    return(f"THIS IS THE T'S VALUE:{huh.test} THIS IS THE B'S VALUE:{huh.b} is this?? {huh.p}\n\n i: {huh.i}")
+    args = invAddCMDParse(string)
+    return(f"{args.help}")
 
 def intTryParse(value):
     if value != '':
