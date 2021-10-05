@@ -51,7 +51,7 @@ def invAddCMDParse(parseStr):
 
 def invRemCMDParse(parseStr):
     parser = NoExitParser(description="Remove Item Command",  
-        usage = "inv remove -i <item name> [-b <bag name>]  [-h] [-s <stock amount>] [-a] [-u user mention>]", epilog=" <Text> [-optionalCommand]",conflict_handler="resolve", epilog=" <Text> [-optionalCommand]")
+        usage = "inv remove -i <item name> [-b <bag name>]  [-h] [-s <stock amount>] [-a] [-u user mention>]", epilog=" <Text> [-optionalCommand]",conflict_handler="resolve")
 
     required = parser.add_argument_group('You must use at least one of these arguments')
     optional = parser.add_argument_group('optional arguments')
