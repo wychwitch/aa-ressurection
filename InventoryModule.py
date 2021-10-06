@@ -817,6 +817,7 @@ def createCharacter(userId, characterName):
     charaDict = DndAssets.currentCharas
     inv = DndAssets.inventoryDict
     purse = DndAssets.purseDict
+    bagIds = DndAssets.bagIds
     chara = isCharacter(userId, characterName)
     if chara[0]:
         return f"You need to pick a new name! You already have a character named {chara[1]}"
@@ -825,6 +826,7 @@ def createCharacter(userId, characterName):
             inv[userId] = {}
             purse[userId] = {}
         inv[userId][chara[1]] = {}
+        bagIds[userId][chara[1]] = {"--bagNum":0}
         purse[userId][chara[1]] = {
             "public":{
             "gp":0,
@@ -841,6 +843,7 @@ def createCharacter(userId, characterName):
         DndAssets.purseDict = purse
         DndAssets.inventoryDict = inv 
         DndAssets.currentCharas = charaDict
+        DndAssets.bagIds = bagIds
         DndAssets.saveAll()
 
         return f"<@!{userId}> has created the character {chara[1]}!"
