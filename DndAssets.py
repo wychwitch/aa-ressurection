@@ -8,7 +8,8 @@ __all__ = [
     "bagIds",
     "coinPieceList",
     "coinRates",
-    "saveAll"
+    "saveAll",
+    "currentCharas"
     ]
 import json
 
@@ -27,17 +28,21 @@ def init():
     global inventoryDict
     global purseDict
     global bagIds
+    global currentCharas
     with open("json/inventory.json") as inv_file:
         inventoryDict = dict(json.load(inv_file))
     with open("json/coin.json") as purse_file:
         purseDict = dict(json.load(purse_file))
     with open("json/bagId.json") as bag_file:
         bagIds = dict(json.load(bag_file))
+    with open("json/currentCharacter.json") as chara_file:
+        currentCharas = dict(json.load(chara_file))
 
 def saveAll():
     update_db(inventoryDict, "inventory.json")
     update_db(purseDict, "coin.json")
     update_db(bagIds, "bagId.json")
+    update_db(currentCharas, "currentCharacter.json")
 
 def update_db(database, filename):
     with open("json/"+filename, "w") as dtb:

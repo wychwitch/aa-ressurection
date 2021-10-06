@@ -36,7 +36,7 @@ def invAddCMDParse(parseStr):
     optional.add_argument("-p","--private", help="Marks the item as private!", 
         required=False, action='store_true')
     
-    optional.add_argument("-h","--help", help="Displays this help message.", default=None, dest="help", action=MyHelpAction)
+    optional.add_argument("-h","--help", help="Displays this help message.", default="", dest="help", action=MyHelpAction)
     
     optional.add_argument("-s","--stock", help="The amount of the item you want to add!",
         default=1, metavar='<stock amount>', required=False, type=int)
@@ -74,7 +74,7 @@ def invRemCMDParse(parseStr):
     optional.add_argument("-u","--user", help="The user mention!",  metavar='<user mention>',
         required=False, type=str)
     
-    optional.add_argument("-h","--help", help="Displays this help message!", dest="help", action=MyHelpAction)
+    optional.add_argument("-h","--help", help="Displays this help message!", dest="help", default="", action=MyHelpAction)
     return parser.parse_args(parseStr.split())
 
 def invMovCMDParse(parseStr):
@@ -96,7 +96,7 @@ def invMovCMDParse(parseStr):
         help="User to target!", 
         required=False, action=MyAction)
     
-    optional.add_argument("-h","--help", metavar='<user mention>', help="Displays this", dest="help", action=MyHelpAction)
+    optional.add_argument("-h","--help", metavar='<user mention>', help="Displays this", default="", dest="help", action=MyHelpAction)
     
     return parser.parse_args(parseStr.split())
 
@@ -114,7 +114,7 @@ def invHideCMDParse(parseStr):
     
     optional.add_argument("-u","--user", metavar='<user mention>', help="User whose item(s) to hide!", required=False, action=MyAction)
     
-    optional.add_argument("-h","--help", help="Displays this!", dest="help", action=MyHelpAction)
+    optional.add_argument("-h","--help", help="Displays this!", default="", dest="help", action=MyHelpAction)
     return parser.parse_args(parseStr.split())
 
 def invDumpCMDParse(parseStr):
@@ -132,7 +132,7 @@ def invDumpCMDParse(parseStr):
     optional.add_argument("-u","--user", metavar='<user mention>', help="User mention",
          required=False, action=MyAction)
     
-    optional.add_argument("-h","--help", help="This message!", dest="help", action=MyHelpAction)
+    optional.add_argument("-h","--help", default="", help="This message!", dest="help", action=MyHelpAction)
     return parser.parse_args(parseStr.split())
 
 def modCoinCMDparse(parseStr):
@@ -150,7 +150,7 @@ def modCoinCMDparse(parseStr):
     optional.add_argument("-u","--user", help="User mention!",
          required=False, action=MyAction)
     
-    optional.add_argument("-h","--help", help="This message!!!", dest="help", action=MyHelpAction)
+    optional.add_argument("-h","--help", default="", help="This message!!!", dest="help", action=MyHelpAction)
     return parser.parse_args(parseStr.split())
 
 def convertCoinCMDparse(parseStr):
@@ -173,7 +173,7 @@ def convertCoinCMDparse(parseStr):
     optional.add_argument("-u","--user", metavar='<user metion>',help="User to hjsdfd!",
          required=False, action=MyAction)
     
-    optional.add_argument("-h","--help", help="This message!", dest="help", action=MyHelpAction)
+    optional.add_argument("-h","--help", default="", help="This message!", dest="help", action=MyHelpAction)
     return parser.parse_args(parseStr.split())
 
 def transferCoinCMDparse(parseStr):
@@ -191,7 +191,7 @@ def transferCoinCMDparse(parseStr):
     optional.add_argument("-u","--user",metavar='<user mention>', help="The user who wil get their coin transferred! Can only be used as DM!",
          required=False, action=MyAction)
     
-    optional.add_argument("-h","--help", help="Displays this message!", dest="help", action=MyHelpAction)
+    optional.add_argument("-h","--help", default="", help="Displays this message!", dest="help", action=MyHelpAction)
     
     return parser.parse_args(parseStr.split())
 

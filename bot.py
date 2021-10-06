@@ -205,11 +205,6 @@ async def inventoryDictAdd(ctx, *, itemStr: str):
     else:
         await dPrint(ctx, returnStr)
 
-@invCMD.command(name="init", aliases=["start"], pass_context = True)
-async def invCMDInit(ctx):
-    await dPrint(ctx,userInit(str(ctx.message.author.id)))
-    print(DndAssets.inventoryDict.keys())
-
 
 @invCMD.command(name="remove", aliases=["rem", "del", "delete"], pass_context = True)
 async def invCMDDelete(ctx, *, remStr:str):
@@ -243,7 +238,7 @@ async def invCMDDHide(ctx, *, movStr:str):
 
 ## COIN
 
-@bot.group(aliases=["coin", "c"], pass_context=True)
+@bot.group(aliases=["coin", "c", "purse"], pass_context=True)
 async def coinCMD(ctx):
     returnStr = ""
     if ctx.invoked_subcommand is None:
@@ -267,7 +262,7 @@ async def privCoinCMD(ctx):
 
 @coinCMD.command(name="-h", pass_context=True)
 async def privCoinCMD(ctx):
-    await ctx.channel.send(ctx, "Coin shows your current coinpurse! Pass -p just to display your private coinpurse, and -f to show your total coin amount, private and public together!")
+    await dPrint(ctx, "Coin shows your current coinpurse! Pass -p just to display your private coinpurse, and -f to show your total coin amount, private and public together!")
 
 @coinCMD.command(aliases=["add", "a"], pass_context=True)
 async def addCoinCMD(ctx, *, commandStr):
@@ -290,8 +285,23 @@ async def convertCoinCMD(ctx, *, commandStr):
     await ctx.channel.send(processConvertCoin(userId, commandStr))
     
 
+# CHARACTER
+@bot.group(aliases=["chara", "character"], pass_context=True)
+async def charaCMD(ctx):
+    returnStr = ""
+    if ctx.invoked_subcommand is None:
+        returnStr += getAllChara(str(ctx.author.id))
+        await ctx.channel.send(returnStr)
 
+@charaCMD.command(name="create", pass_context = True)
+async def charaCreateCMD(ctx, characterName):
+    await dPrint(ctx,createCharacter(str(ctx.message.author.id), characterName))
+    print(DndAssets.inventoryDict.keys())
 
+@charaCMD.command(name="switch", pass_context = True)
+async def charaSwitchCMD(ctx, characterName):
+    await dPrint(ctx,switchChara(str(ctx.message.author.id), characterName))
+    print(DndAssets.inventoryDict.keys())
 
 
 
