@@ -826,7 +826,7 @@ def createCharacter(userId, characterName):
             inv[userId] = {}
             purse[userId] = {}
         inv[userId][chara[1]] = {}
-        bagIds[userId][chara[1]] = {"--bagNum":0}
+        bagIds[userId] = {chara[1]:{"--bagNum":0}}
         purse[userId][chara[1]] = {
             "public":{
             "gp":0,
