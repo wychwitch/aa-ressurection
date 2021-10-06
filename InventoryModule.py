@@ -857,7 +857,10 @@ def switchChara(userId, characterName):
 
 def isCharacter(userId, charaName):
     invDict = DndAssets.inventoryDict
-    onlyCharas = list(invDict[userId].keys())
+    try:
+        onlyCharas = list(invDict[userId].keys())
+    except KeyError:
+        return False, charaName
     for i in range(len(onlyCharas)):
         if charaName.lower() == onlyCharas[i].lower():
             return True, onlyCharas[i]
