@@ -8,7 +8,9 @@ __all__ = [
     "invDumpCMDParse",
     "modCoinCMDparse",
     "convertCoinCMDparse",
-    "transferCoinCMDparse"
+    "transferCoinCMDparse",
+    "changeDescCMDParse",
+    "lookCMDParse"
     ]
 
 # PARSERS REMOVE LATER AND PUT IN OWN MODULE
@@ -43,6 +45,9 @@ def invAddCMDParse(parseStr):
     
     optional.add_argument("-w","--worth", help="How much the item is worth!", nargs='+',
         default="0cp", metavar='<worth amount>', required=False, action=MyAction)
+
+    optional.add_argument("-d","--desc", help="How much the item is worth!", nargs='+',
+        default="", metavar='<worth amount>', required=False, action=MyAction)
     
     optional.add_argument("-u","--user", metavar='<user mention>', help="The user you'll add the item to! Only usable by someone with the DM role.", 
         required=False, type=str)
@@ -195,7 +200,46 @@ def transferCoinCMDparse(parseStr):
     
     return parser.parse_args(parseStr.split())
 
+def changeDescCMDParse(parseStr):
+    parser = NoExitParser(description="Transfer Coin Command", usage = "coin transfer -c <coin formatted as `1gp`> -t <target coinpurse, must be `public` or `private`>  [-h] [-u <user mention>]", epilog=" <Text> [-optionalCommand]", conflict_handler="resolve")
 
+    required = parser.add_argument_group('required arguments')
+    optional = parser.add_argument_group('optional arguments')
+
+    optional.add_argument("-h","--help", help="Displays this help message.", default="", dest="help", action=MyHelpAction)
+
+    required.add_argument("-i","--item", help="The item you're adding to your inventory!", nargs='+',
+            required=False, metavar='<item name>', action=MyAction)
+
+    required.add_argument("-d","--desc",help="Description for the item!", nargs='+',
+         metavar='<description>',required=False, action=MyAction)
+    
+    optional.add_argument("-u","--user", metavar='<user mention>', help="The user you'll add the item to! Only usable by someone with the DM role.", 
+        required=False, type=str)
+    
+    return parser.parse_args(parseStr.split())
+
+def lookCMDParse(parseStr):
+    parser = NoExitParser(description="Transfer Coin Command", usage = "coin transfer -c <coin formatted as `1gp`> -t <target coinpurse, must be `public` or `private`>  [-h] [-u <user mention>]", epilog=" <Text> [-optionalCommand]", conflict_handler="resolve")
+
+    required = parser.add_argument_group('required arguments')
+    optional = parser.add_argument_group('optional arguments')
+
+    optional.add_argument("-h","--help", help="Displays this help message.", default="", dest="help", action=MyHelpAction)
+
+    required.add_argument("-i","--item", help="The item you're adding to your inventory!", nargs='+',
+            required=False, metavar='<item name>', action=MyAction)
+
+    required.add_argument("-d","--desc",help="Description for the item!", nargs='+',
+         metavar='<description>',required=False, action=MyAction)
+    
+    optional.add_argument("-u","--user", metavar='<user mention>', help="The user you'll add the item to! Only usable by someone with the DM role.", 
+        required=False, type=str)
+    
+    optional.add_argument("-f","--full", help="Shows item even if its hidden!", 
+        required=False, action='store_true')
+    
+    return parser.parse_args(parseStr.split())
 
 class NoExitParser(argparse.ArgumentParser):
     def error(self, message):
@@ -239,7 +283,6 @@ class MyAppend(argparse.Action):
         items = my_copy_items(items)
         items.append(' '.join(values))
         setattr(namespace, self.dest, items)
-
 
 class MyHelpAction(argparse.Action):
 

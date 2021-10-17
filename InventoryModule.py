@@ -14,7 +14,8 @@ __all__ = [
     "createCharacter",
     "testyfunc",
     "getAllChara",
-    "switchChara"
+    "switchChara",
+    "processChangeDesc"
     ]
 from os import X_OK
 from typing import Tuple
@@ -486,6 +487,63 @@ def processDumpBag(ctx, userId, bagStr):
             returnStr += f"\n{dumpBag(userId, bag[1], toBag[1])}"
     return returnStr
 
+def processChangeDesc(ctx, userId, cmdStr):
+    invDict = DndAssets.inventoryDict
+    returnStr = ""
+    args = None
+
+    try:
+        args = changeDescCMDParse(cmdStr)
+    except Exception as e:
+        frameinfo = getframeinfo(currentframe())
+        return f"Whoops! ping chair for this error: {e}\n\n{frameinfo.filename} @ line {frameinfo.lineno}"
+    if args.help != "":
+        return args.help
+    if args.user:
+        if checkDM(ctx, userId):
+            userId = args.user.strip('@<!>')
+        else:
+            return "You aren't a dm!!!"
+
+    if userId not in list(invDict.keys()):
+        return f"<@!{userId}> doesn't have a character! Run chara create <name> to get one!"
+
+    if args.item:
+        if args.desc:
+            return changeItemDesc(userId, args.item, args.desc)
+        else:
+            return "You need to supply a description!"
+    else:
+        return "You need to supply an item!"
+
+def processLookItem(ctx, userId, cmdStr):
+    invDict = DndAssets.inventoryDict
+    args = None
+
+    try:
+        args = lookCMDParse(cmdStr)
+    except Exception as e:
+        frameinfo = getframeinfo(currentframe())
+        return f"Whoops! ping chair for this error: {e}\n\n{frameinfo.filename} @ line {frameinfo.lineno}"
+    
+    if args.help != "":
+        return args.help
+    
+    if args.user:
+        if args.full:
+            if checkDM(ctx, userId):
+                userId = args.user.strip('@<!>')
+            else:
+                return "You aren't a dm!!! You can't use -f on a user!"
+        userId = args.user.strip('@<!>')
+
+    if userId not in list(invDict.keys()):
+        return f"<@!{userId}> doesn't have a character! Run chara create <name> to get one!"
+
+    if args.item:
+        return look(userId, args.item, args.full)
+    else:
+        return "You need to supply an item!"
 
 ## Utility Funcs
 def getInv(userid, showFull = False):
@@ -516,6 +574,7 @@ def getInv(userid, showFull = False):
                 isPrivate = invDict[userid][currChara][item]["private"]
                 itemStock = invDict[userid][currChara][item]["stock"]
                 itemWorth = invDict[userid][currChara][item]["worth"]
+                itemDesc = invDict[userid][currChara][item]["desc"]
 
                 if bag == invDict[userid][currChara][item]["bag"]:
                     if isPrivate:
@@ -527,12 +586,16 @@ def getInv(userid, showFull = False):
                                 bagText += f"||"
                             if itemWorth > 0:
                                 bagText += f"\n\t\t\t- ||Worth {formatCoin(sumCopper(itemWorth))}||"
+                            if itemDesc != "":
+                                bagText += f"\n\t\t\t- ||Description: *{itemDesc}*||"
                     else:
                         bagText += f"\n\t\t- {item}"
                         if itemStock > 1:
                                 bagText += f"({itemStock})"
                         if itemWorth > 0:
                                 bagText += f"\n\t\t\t- Worth {formatCoin(sumCopper(itemWorth))}"
+                        if itemDesc != "":
+                                bagText += f"\n\t\t\t- Description: *{itemDesc}*"
             if bagText == "":
                 bagText += "\n\t\t-*Bag is empty*"
             returnStr += bagText
@@ -603,6 +666,7 @@ def addItem(userId, args, itemName = ""):
             "private":args.private,
             "stock":args.stock,
             "bag":bag[1],
+            "desc":args.desc,
             "worth":getCoinAsCopperInt(parseCoinStr(args.worth))
         }
     if bagText == "":
@@ -611,19 +675,6 @@ def addItem(userId, args, itemName = ""):
     DndAssets.saveAll()
     return f"Added {item[1]} to {currChara}'s' {bagText}!\n"
 
-## Add this to the add item func
-def setUpItem(userId, itemName, validArgs):
-    bag = validArgs['-b']
-    itemStock = validArgs['-s']
-    isPrivate = validArgs['-p']
-    itemWorth = getCoinAsCopperInt(parseCoinStr(validArgs['-w']))
-    itemValues = {
-        "bag":bag,
-        "itemStock":itemStock,
-        "isPrivate":isPrivate,
-        "itemWorth":itemWorth
-    }
-    return addItem(userId, itemName, itemValues)
 
 # Only assumes valid userId
 def removeItem(userId, itemName, amount= 1, isAll = False):
@@ -792,6 +843,69 @@ def addNewBagId(userId, bag):
     bagIds[userId][currChara]["--bagNum"] +=1
     bagIds[userId][currChara][bag] = bagIds[userId][currChara]["--bagNum"]
     DndAssets.bagIds = bagIds
+
+def changeItemDesc(userId, itemName, desc):
+    invDict = DndAssets.inventoryDict
+    chara = DndAssets.currentCharas[userId]
+
+    item = isItemInInv(userId, itemName)
+
+    if not item[0]:
+        return f"You dont have {item[1]} in your inventory!"
+    else:
+        invDict[userId][chara][item[1]]["desc"] = desc
+        DndAssets.inventoryDict = invDict
+        DndAssets.saveAll()
+        return f"Set item description to *{desc}*!!"
+
+def look(userId, itemName, isFull):
+    invDict = DndAssets.inventoryDict
+    chara = DndAssets.currentCharas[userId]
+
+    item = isItemInInv(userId, itemName)
+
+
+    if not item[0]:
+        return f"{chara} doesn't have {item[1]} in their inventory!"
+    else:
+        isPrivate = invDict[userId][chara][item[1]]["private"]
+        if isPrivate:
+            if isFull:
+                return lookAtItem(userId, chara, itemName)
+            else:
+                return f"{chara} doesn't have {item[1]} in their inventory!"
+        else:
+            return lookAtItem(userId, chara, item[1])
+
+def lookAtItem(userId, chara, itemName):
+    returnStr = ""
+    invDict = DndAssets.inventoryDict
+    desc = invDict[userId][chara][itemName]["desc"]
+    worth = invDict[userId][chara][itemName]["worth"]
+    stock = invDict[userId][chara][itemName]["stock"]
+    isPrivate = invDict[userId][chara][itemName]["private"]
+    bag = invDict[userId][chara][itemName]["bag"]
+    if bag == "":
+        bag = "Inventory"
+    totalWorth = sumCopper(worth)
+    singleItemWorth = ""
+    visibility = ""
+    if desc == "":
+        desc = "This item has no description."
+    if isPrivate:
+        visibility = f"{itemName} is currently hidden!"
+    else:
+        visibility = f"{itemName} is currently visible to everyone!"
+    returnStr += f"**{itemName}** held by **{chara}** in their **{bag}**"
+    returnStr += f"\n-{visibility}"
+    returnStr += f"\n-Description: *{desc}*"
+    returnStr += f"\n-Stock: {stock}"
+    if worth > 0:
+        returnStr += f"\n-This item's total worth is {formatCoin(totalWorth)}"
+        if stock > 1:
+            singleItemWorth = sumCopper(worth / stock)
+            returnStr += f" (Each individual item is worth {formatCoin(singleItemWorth)})"
+    return returnStr
 
 """
 CHARACTER

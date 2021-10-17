@@ -22,6 +22,8 @@ import copy
 
 from os import path
 
+from InventoryModule import processLookItem
+
 VERSION = "2.0.0"
 
 # enabling intents
@@ -162,13 +164,11 @@ async def invCMD(ctx):
         await ctx.channel.send(returnStr)
 
 @invCMD.command(name="-f",  pass_context=True)
-async def invCMDFull(ctx, userStr = ""):
+async def invCMDFull(ctx):
     returnStr = ""
     userId = str(ctx.message.author.id)
 
-    if userStr != "" and checkDM(ctx, ctx.message.author):
-        returnStr += getInv(ctx, userStr, True)
-    elif userId in list(DndAssets.inventoryDict.keys()):
+    if userId in list(DndAssets.inventoryDict.keys()):
         returnStr += getInv(userId, True)
     else:
         returnStr += "ping chair smth broke"
@@ -179,9 +179,9 @@ async def invCMDFull(ctx, userStr = ""):
 async def invCMDGet(ctx, userMention, showFull = ""):
     returnStr = ""
     isShowFull = False
-    userId = cleanUserMention(userMention)
+    userId = cleanUserMention(str(userMention))
     if showFull == "-f":
-        isShowFull = checkDM(ctx, ctx.message.author)
+        isShowFull = checkDM(ctx, str(ctx.message.author.id))
 
     if userId in list(DndAssets.inventoryDict.keys()):
         returnStr += getInv(userId, isShowFull)
@@ -235,7 +235,15 @@ async def invCMDDHide(ctx, *, movStr:str):
     userId = str(ctx.message.author.id)
     await dPrint(ctx, processDumpBag(ctx, userId, movStr))
 
+@invCMD.command(name="desc",aliases=["description", "changedesc", "moddesc"], pass_context = True)
+async def invCMDDHide(ctx, *, cmdStr:str):
+    userId = str(ctx.message.author.id)
+    await dPrint(ctx, processChangeDesc(ctx, userId, cmdStr))
 
+@invCMD.command(name="look", pass_context = True)
+async def invCMDDHide(ctx, *, cmdStr:str):
+    userId = str(ctx.message.author.id)
+    await dPrint(ctx, processLookItem(ctx, userId, cmdStr))
 ## COIN
 
 @bot.group(aliases=["coin", "c", "purse"], pass_context=True)
