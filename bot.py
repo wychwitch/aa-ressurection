@@ -163,7 +163,7 @@ async def invCMD(ctx):
         returnStr += getInv(str(ctx.author.id))
         await ctx.channel.send(returnStr)
 
-@invCMD.command(name="-f",  pass_context=True)
+@invCMD.command(name="-f", aliases=["--full"],  pass_context=True)
 async def invCMDFull(ctx):
     returnStr = ""
     userId = str(ctx.message.author.id)
@@ -180,7 +180,7 @@ async def invCMDGet(ctx, userMention, showFull = ""):
     returnStr = ""
     isShowFull = False
     userId = cleanUserMention(str(userMention))
-    if showFull == "-f":
+    if showFull == "-f" or showFull == "--full":
         isShowFull = checkDM(ctx, str(ctx.message.author.id))
 
     if userId in list(DndAssets.inventoryDict.keys()):
@@ -254,7 +254,7 @@ async def coinCMD(ctx):
         await ctx.channel.send(returnStr)
 
 
-@coinCMD.command(name="-f", pass_context=True)
+@coinCMD.command(name="-f", aliases=["--full"], pass_context=True)
 async def privCoinCMD(ctx):
     userId = str(ctx.author.id)
     returnStr = ""
@@ -302,12 +302,12 @@ async def charaCMD(ctx):
         await ctx.channel.send(returnStr)
 
 @charaCMD.command(name="create", pass_context = True)
-async def charaCreateCMD(ctx, characterName):
+async def charaCreateCMD(ctx, *, characterName):
     await dPrint(ctx,createCharacter(str(ctx.message.author.id), characterName))
     print(DndAssets.inventoryDict.keys())
 
 @charaCMD.command(name="switch", pass_context = True)
-async def charaSwitchCMD(ctx, characterName):
+async def charaSwitchCMD(ctx, *, characterName):
     await dPrint(ctx,switchChara(str(ctx.message.author.id), characterName))
     print(DndAssets.inventoryDict.keys())
 

@@ -146,8 +146,8 @@ def modCoinCMDparse(parseStr):
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')
 
-    required.add_argument("-c","--coin",help="Coin to add or remove from your coinpurse!", metavar='<coin in the format `1gp`>', nargs='+',
-        default="0np", required=False, action=MyAction)
+    required.add_argument(dest="coin", help="Coin to add or remove from your coinpurse!", metavar='<coin in the format `1gp`>', nargs='+',
+        default="0np", action=MyAction)
     
     optional.add_argument("-p","--private", help="Flag for adding to your private coinpurse!", 
         required=False, action='store_true')
