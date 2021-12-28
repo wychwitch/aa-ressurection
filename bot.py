@@ -114,8 +114,27 @@ async def on_message(message):
         if (' ' not in message.content.strip()):
             print("this IS testing if message works")
             await update_az_game(bot,message)
+    
+    if config["pbpRoomId"]:
+        if message.channel.id == config["pbpRoomId"]:
+            hasntPostedRole = discord.utils.get(message.guild.roles, id=config["hasntPostedRoleId"])
+            for member in hasntPostedRole.members:
+                if message.author == member:
+                    await message.author.remove_roles(hasntPostedRole)
+                    msg = await message.channel.send(f"{message.author.mention} Worked!")
+                    await asyncio.sleep(5)
+                    await msg.delete()
+                    break
+                else:
+                     msg = await message.channel.send("False! (false)")
+                     await asyncio.sleep(5)
+                     await msg.delete()
+                     break
+
     await check_pings(bot, message)
     await bot.process_commands(message)
+
+    
 
 async def check_pings(bot, message):
     global pings_dict
@@ -144,6 +163,59 @@ async def check_pings(bot, message):
                 await send_dm(user,"#{}: <{}> {}".format(message.channel, message.author.name, message.content))
 
 
+
+@bot.command(name="newturn", aliases=["reset"], pass_context=True)
+async def newTurn(ctx, *, members = None):
+    if config["pbpRoomId"]:
+        hasntPostedRole = discord.utils.get(ctx.message.guild.roles, id=config["hasntPostedRoleId"])
+        playerRole = discord.utils.get(ctx.message.guild.roles, id=config["playerRoleId"])
+
+        if members is None:
+            for member in playerRole.members:
+                await member.add_roles(hasntPostedRole)
+                await tempPrint(ctx, "All players' posting statuses reset!")
+        else:
+            memberIdList = members.split()
+            if intTryParse(memberIdList[0])[1]:
+                for userId in memberIdList:
+                    memberId = intTryParse(userId)
+                    if memberId[1]:
+                        member = ctx.guild.get_member(memberId[0])
+                        await member.add_roles(hasntPostedRole)
+                    else:
+                        await tempPrint(ctx, f"can't find user with id {userId}")
+                await tempPrint(ctx, "Specified players' posting statuses have been reset!")
+
+@bot.command(name="passTurn", aliases=["pass"], pass_context=True)
+async def passTurn(ctx, *, members = None):
+     author = ctx.message.author
+     if config["pbpRoomId"]:
+         dmRole = discord.utils.get(ctx.message.guild.roles, id=config["dmRoleId"])
+         hasntPostedRole = discord.utils.get(ctx.message.guild.roles, id=config["hasntPostedRoleId"])
+         dmModRole = discord.utils.get(ctx.message.guild.roles, id=config["dmModId"])
+         
+         if members is None:
+            if hasntPostedRole in author.roles:
+                await author.remove_roles(hasntPostedRole)
+                await tempPrint(ctx, f"{author.mention} removed from posting role!")
+         else:
+            if dmRole in ctx.message.author.roles or dmModRole in ctx.message.author.roles:
+                memberIdList = members.split()
+                if intTryParse(memberIdList[0])[1]:
+                    for userId in memberIdList:
+                        memberId = intTryParse(userId)
+                        if memberId[1]:
+                            member = ctx.guild.get_member(memberId[0])
+                            await member.remove_roles(hasntPostedRole)
+                        else:
+                            await dPrint(ctx, f"can't find user with id {userId}")
+                    await tempPrint(ctx, "Specified players' have been removed!")
+
+
+async def tempPrint(ctx, str):
+    msg = await ctx.message.channel.send(f"{ctx.message.author.mention} {str}")
+    await asyncio.sleep(5)
+    await msg.delete()
 """
 INVMANAGER
 
