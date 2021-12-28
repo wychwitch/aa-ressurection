@@ -173,7 +173,7 @@ async def newTurn(ctx, *, members = None):
         if members is None:
             for member in playerRole.members:
                 await member.add_roles(hasntPostedRole)
-                await tempPrint(ctx, "All players' posting statuses reset!")
+            await tempPrint(ctx, "All players' posting statuses reset!")
         else:
             memberIdList = members.split()
             if intTryParse(memberIdList[0])[1]:
