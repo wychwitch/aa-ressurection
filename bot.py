@@ -125,7 +125,7 @@ async def on_message(message):
                     break
             if memberFound:
                 await message.author.remove_roles(hasntPostedRole)
-                msg = await message.channel.send(f"{message.author.mention} Worked!")
+                msg = await message.channel.send(f"{message.author.mention} removed from the posting queue!")
                 await asyncio.sleep(5)
                 await msg.delete()
                 
