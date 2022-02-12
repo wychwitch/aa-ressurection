@@ -123,16 +123,16 @@ async def on_message(message):
                 if message.author == member:
                     memberFound = True
                     break
-        if memberFound:
-            await message.author.remove_roles(hasntPostedRole)
-            msg = await message.channel.send(f"{message.author.mention} Worked!")
-            await asyncio.sleep(5)
-            await msg.delete()
-            
-        else:
-            msg = await message.channel.send("User isn't in the Hasn't Posted role!")
-            await asyncio.sleep(5)
-            await msg.delete()
+            if memberFound:
+                await message.author.remove_roles(hasntPostedRole)
+                msg = await message.channel.send(f"{message.author.mention} Worked!")
+                await asyncio.sleep(5)
+                await msg.delete()
+                
+            else:
+                msg = await message.channel.send("User isn't in the Hasn't Posted role!")
+                await asyncio.sleep(5)
+                await msg.delete()
 
     await check_pings(bot, message)
     await bot.process_commands(message)
