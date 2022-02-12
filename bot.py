@@ -99,6 +99,7 @@ async def send_dm(member: discord.Member, content):
 
 @bot.event
 async def on_message(message):
+    memberFound = False
     if message.author == bot.user:
            # we do not want the bot to reply to itself
         return
@@ -120,16 +121,18 @@ async def on_message(message):
             hasntPostedRole = discord.utils.get(message.guild.roles, id=config["hasntPostedRoleId"])
             for member in hasntPostedRole.members:
                 if message.author == member:
-                    await message.author.remove_roles(hasntPostedRole)
-                    msg = await message.channel.send(f"{message.author.mention} Worked!")
-                    await asyncio.sleep(5)
-                    await msg.delete()
+                    memberFound = True
                     break
-                else:
-                     msg = await message.channel.send("False! (false)")
-                     await asyncio.sleep(5)
-                     await msg.delete()
-                     break
+        if memberFound:
+            await message.author.remove_roles(hasntPostedRole)
+            msg = await message.channel.send(f"{message.author.mention} Worked!")
+            await asyncio.sleep(5)
+            await msg.delete()
+            
+        else:
+            msg = await message.channel.send("User isn't in the Hasn't Posted role!")
+            await asyncio.sleep(5)
+            await msg.delete()
 
     await check_pings(bot, message)
     await bot.process_commands(message)
