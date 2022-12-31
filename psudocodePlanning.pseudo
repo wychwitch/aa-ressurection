@@ -1,0 +1,27 @@
+
+function FIGURE OUT HOW TO ACTIVATE 
+
+function bulkItem(String input) 
+
+first check if --bulk in the string
+
+if is "-i" in string >1 times 
+    skipkey = "-i" 
+#firstpass
+argModels = --bulk == string, leave out -i but keep everything else
+
+then 
+    second pass with just the --bulk string,  --i in argModels but listMode =  True 
+
+in validateArgs
+    if listmode is true, instead skip assigning keys and instead append non-arg to list. Then return list.
+
+isItemList = new validateArgs
+
+then in the function simply
+    for item in isItemList
+        add item to user items with the already defined values (stock, worth, bag, etc)
+
+
+currChara = DndAssets.currentCharas[userId]
+[currChara]

@@ -1,7 +1,12 @@
 {
-    "token": "MjQ2NTQ5Mzc2MzYzNjU5MjY1.CwcQjg.JeeVK-DG900yjYxJVxVFg9PJjZM",
+    "token": "",
     "owner": "84514492938989568",
-    "prefix": "!",
-    "bot_name": "AradiaBot",
-    "avatar": "X8aZyuI.png"
+    "prefix": "!!",
+    "bot_name": "lilseb",
+    "avatar": "X8aZyuI.png",
+    "pbpRoomId": 625831146474962964,
+    "playerRoleId": 909855217925890138,
+    "hasntPostedRoleId": 925511964426375168,
+    "dmRoleId": 624710395822604288,
+    "dmModId": 675498745231835177
 }
