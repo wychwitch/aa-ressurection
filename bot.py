@@ -27,7 +27,7 @@ from InventoryModule import processLookItem
 VERSION = "2.0.0"
 
 # enabling intents
-intents = discord.Intents.default() 
+intents = discord.Intents.all()
 intents.members = True
 
 # Grab the config variables
