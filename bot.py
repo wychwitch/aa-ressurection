@@ -130,7 +130,7 @@ async def on_message(message):
                 await msg.delete()
                 
             else:
-                print(message.author + " isn't in the Hasn't Posted role!")
+                print( "{} isn't in the Hasn't Posted role!".format(message.author))
 
     await check_pings(bot, message)
     await bot.process_commands(message)
@@ -161,7 +161,7 @@ async def check_pings(bot, message):
             #ping only if user exists AND has read permissions AND is NOT the bot OR the person who is doing the pinging
             if (user and message.channel.permissions_for(user).read_messages and message.author != bot.user and message.author != user):
                 #print("second if in check pings")
-                await send_dm(user,"#{}: <{}> {}".format(message.channel, message.author.name, message.content))
+                await send_dm(user,"> #{}: <{}> {}\nJump to message: {}".format(message.channel, message.author.name, message.content, message.jump_url))
 
 
 
