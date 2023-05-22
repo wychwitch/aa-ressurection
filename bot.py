@@ -645,12 +645,12 @@ https://github.com/cameronleong/guesstheword
 class AZGame:
     poke_list_url = "https://pastebin.com/tmqw0xns"
     def __init__(self, string):
-        if string == "az":
+        if string.lower() == "az":
             wordlist = "json/az_words.txt"
-            wordlistlines = 115810                  
-        elif string == "poke":
+        elif string.lower() == "poke" or string.lower() == "pokemon":
             wordlist = "json/pokemon.txt"
-            wordlistlines = 893
+        with open(wordlist, 'r') as fp:
+            wordlistlines = len(fp.readlines())
         #number of lines in the wordlist you're using
         linenumber = random.randint(1, wordlistlines)       
         #pick a random line number
@@ -712,12 +712,14 @@ async def az_end(ctx):
     
 # called in the on_message event
 async def update_az_game(bot, message):
+    print("in az loop")
     global az_game
     # az game ignores messages with multiple words/has spaces
     if (not az_game or ' ' in message.content.strip()):
         return
 
     guess = message.content.strip().lower()
+    print(guess)
     # if the answer is correct, update scores and end the game
     if (guess == az_game.answer):
         player_score = await add_score(message.author)
