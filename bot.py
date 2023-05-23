@@ -659,7 +659,7 @@ def handle_gens(genList):
             with open("json/pokemon_gens/{}.txt".format(gen), 'r') as fp:
                 data += "\n"+fp.read()
 
-        return data.sort()
+        return data
     else:
         with open("json/pokemon.txt", 'r') as fp:
             return fp.read()
@@ -680,6 +680,7 @@ class AZGame:
             file = "poke\n"
             file += handle_gens(gens)
             wordlist = file.split("\n")
+            wordlist.sort()
         #number of lines in the wordlist you're using
         wordlist = list(filter(("").__ne__, wordlist))
         guess_index = random.randint(1, len(wordlist))       
