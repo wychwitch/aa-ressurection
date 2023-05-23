@@ -112,9 +112,7 @@ async def on_message(message):
 
     if az_game != None:
         print("there IS a game")
-        if (' ' not in message.content.strip()):
-            print("this IS testing if message works")
-            await update_az_game(bot,message)
+        await update_az_game(bot,message)
     
     if config["pbpRoomId"]:
         if message.channel.id == config["pbpRoomId"]:
@@ -677,10 +675,10 @@ class AZGame:
                 file = fp.read()
             wordlist = file.split("\n")
         elif string.lower() == "poke" or string.lower() == "pokemon":
-            file = "poke\n"
-            file += handle_gens(gens)
+            file = handle_gens(gens)
             wordlist = file.split("\n")
             wordlist.sort()
+            wordlist.insert(0, "poke")
             print(wordlist)
         #number of lines in the wordlist you're using
         wordlist = list(filter(("").__ne__, wordlist))
@@ -689,7 +687,7 @@ class AZGame:
         #linecache lets you pull a single line instead of the entire file
         self.answer = guess_index
         self.left = 1
-        self.right = len(wordlist) - 2
+        self.right = len(wordlist) - 1
         self.wordlist = wordlist
         self.wordlistlines = len(wordlist)
         print("AZ Game answer " + self.wordlist[self.answer])
@@ -746,8 +744,9 @@ async def az_end(ctx):
 async def update_az_game(bot, message):
     print("in az loop")
     global az_game
+    global config
     # az game ignores messages with multiple words/has spaces
-    if (not az_game or ' ' in message.content.strip()):
+    if (not az_game or config["prefix"] in message.content):
         return
 
     guess = message.content.strip().lower()
@@ -772,11 +771,10 @@ async def update_az_game(bot, message):
 
 async def check_string(w):
     global az_game
-    if (' ' not in w):                  
-        for line in az_game.wordlist:                  
-            if w.strip().lower() == line.strip().lower():
+    for line in az_game.wordlist:                  
+        if w.strip().lower() == line.strip().lower():
                 #print(line)
-                return True
+            return True
     return False
 
           
