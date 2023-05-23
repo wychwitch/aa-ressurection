@@ -659,10 +659,10 @@ def handle_gens(genList):
             with open("json/pokemon_gens/{}.txt".format(gen), 'r') as fp:
                 data += "\n"+fp.read()
 
-        return data
+        return data.lower()
     else:
         with open("json/pokemon.txt", 'r') as fp:
-            return fp.read()
+            return fp.read().lower()
 
    
 
