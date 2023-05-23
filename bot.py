@@ -681,6 +681,7 @@ class AZGame:
             file += handle_gens(gens)
             wordlist = file.split("\n")
             wordlist.sort()
+            print(wordlist)
         #number of lines in the wordlist you're using
         wordlist = list(filter(("").__ne__, wordlist))
         guess_index = random.randint(1, len(wordlist))       
