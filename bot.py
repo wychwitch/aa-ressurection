@@ -640,49 +640,77 @@ Cannibalized from:
 https://github.com/cameronleong/guesstheword
 
 """
+    
+def handle_gens(genList):
+    print(genList)
+    genList = genList.strip()
+    genList = genList.split(" ")
+    genDic = {"1":"kanto", "2":"johto", "3":"hoenn", "4":"sinnoh", "5":"unova", "6":"kalos", "7":"alola", "8":"galar", "9":"paldea"}
+    gens = genDic.values()
+    parsedGens = []
+    for gen in genList:
+        if gen in genDic.keys():
+            gen = genDic[gen]
+        if gen.lower() in gens:
+            parsedGens.append(gen)
+    if len(parsedGens) > 0:
+        data = ""
+        for gen in parsedGens:
+            with open("json/pokemon_gens/{}.txt".format(gen), 'r') as fp:
+                data += "\n"+fp.read()
+        return data
+    else:
+        with open("json/pokemon.txt", 'r') as fp:
+            return fp.read()
 
+   
 
 class AZGame:
     poke_list_url = "https://pastebin.com/tmqw0xns"
-    def __init__(self, string):
+    def __init__(self, string, gens=""):
+        print(gens)
+        wordlist = []
         if string.lower() == "az":
-            wordlist = "json/az_words.txt"
+            file = ""
+            with open( "json/az_words.txt", 'r') as fp:
+                file = fp.read()
+            wordlist = file.split("\n")
         elif string.lower() == "poke" or string.lower() == "pokemon":
-            wordlist = "json/pokemon.txt"
-        with open(wordlist, 'r') as fp:
-            wordlistlines = len(fp.readlines())
+            file = "poke\n"
+            file += handle_gens(gens)
+            wordlist = file.split("\n")
         #number of lines in the wordlist you're using
-        linenumber = random.randint(1, wordlistlines)       
-        #pick a random line number
-        az_word = linecache.getline(wordlist, linenumber).strip()  
+        guess_index = random.randint(1, len(wordlist))       
+        #pick a random line number 
         #linecache lets you pull a single line instead of the entire file
-        print("AZ Game answer " + az_word)
-        self.answer = az_word.strip()
-        self.left = linecache.getline(wordlist, 1).strip()
-        self.right = linecache.getline(wordlist, wordlistlines).strip()
+        self.answer = guess_index
+        self.left = 1
+        self.right = len(wordlist) - 2
         self.wordlist = wordlist
-        self.wordlistlines = wordlistlines
-
+        self.wordlistlines = len(wordlist)
+        print("AZ Game answer " + self.wordlist[self.answer])
+        
 @bot.group(pass_context = True)
 async def az(ctx):
     global az_game
     if ctx.invoked_subcommand is None:
         if (az_game):
-            await ctx.channel.send("Your range is: {} --- {}".format(az_game.left, az_game.right))
+            await ctx.channel.send("Your range is: {} --- {}".format(az_game.wordlist[az_game.left], az_game.wordlist[az_game.right]))
         else: 
             await ctx.channel.send("Starting an az game")
             az_game = AZGame("az")
-            await ctx.channel.send("Your range is: {} --- {}".format(az_game.left, az_game.right))
+            await ctx.channel.send("Your range is: {} --- {}".format(az_game.wordlist[az_game.left], az_game.wordlist[az_game.right]))
 
 @az.command(name="poke", aliases=['pk'])
-async def az_poke(ctx):
+async def az_poke(ctx, *, gen=""):
     global az_game
     if az_game is not None:
-        await ctx.channel.send("You have an az game going. Your range is: {} --- {}".format(az_game.left, az_game.right))
+        await ctx.channel.send("You have an az game going. Your range is: {} --- {}".format(az_game.wordlist[az_game.left], az_game.wordlist[az_game.right]))
     else:
-        az_game = AZGame("poke")
-        await ctx.channel.send("Your range is: {} --- {}".format(az_game.left, az_game.right))
-    
+        az_game = AZGame("poke", gen)
+        await ctx.channel.send("Your range is: {} --- {}".format(az_game.wordlist[az_game.left], az_game.wordlist[az_game.right]))
+
+
 
 @az.command(name="help")
 async def az_help(ctx):
@@ -700,11 +728,11 @@ async def az_abc(ctx):
 async def az_end(ctx):
     global az_game
     if (az_game):
-        await ctx.channel.send("Now closing az game, the answer was " + az_game.answer)
+        await ctx.channel.send("Now closing az game, the answer was " + az_game.wordlist[az_game.answer])
         if "poke" in az_game.wordlist:
-            await ctx.channel.send('http://bulbapedia.bulbagarden.net/wiki/'+az_game.answer)
+            await ctx.channel.send('http://bulbapedia.bulbagarden.net/wiki/'+az_game.wordlist[az_game.answer])
         else:
-            await ctx.channel.send('http://www.merriam-webster.com/dictionary/'+az_game.answer)
+            await ctx.channel.send('http://www.merriam-webster.com/dictionary/'+az_game.wordlist[az_game.answer])
         
         az_game = None
     else:
@@ -719,33 +747,32 @@ async def update_az_game(bot, message):
         return
 
     guess = message.content.strip().lower()
+    guessIndex = az_game.wordlist.index(guess)
     print(guess)
     # if the answer is correct, update scores and end the game
-    if (guess == az_game.answer):
+    if (guess == az_game.wordlist[az_game.answer]):
         player_score = await add_score(message.author)
-        await message.channel.send( "The answer was {answer}. {player} wins! {player} has won {wins} times.".format(answer=az_game.answer, player=message.author.name, wins=player_score))
+        await message.channel.send( "The answer was {answer}. {player} wins! {player} has won {wins} times.".format(answer=az_game.wordlist[az_game.answer], player=message.author.name, wins=player_score))
         if "poke" in az_game.wordlist:
-            await message.channel.send('http://bulbapedia.bulbagarden.net/wiki/'+az_game.answer)
+            await message.channel.send('http://bulbapedia.bulbagarden.net/wiki/'+az_game.wordlist[az_game.answer])
         else:
-            await message.channel.send("http://www.merriam-webster.com/dictionary/" + az_game.answer)
+            await message.channel.send("http://www.merriam-webster.com/dictionary/" + az_game.wordlist[az_game.answer])
         az_game = None
     # if the answer is not correct but is a word, update the range
-    elif await check_string(guess) and az_game.left < guess and az_game.right > guess:
-        if guess < az_game.answer:
-            az_game.left = guess
+    elif await check_string(guess) and az_game.left < guessIndex and az_game.right > guessIndex:
+        if guessIndex < az_game.answer:
+            az_game.left = guessIndex
         else:
-            az_game.right = guess
-        await message.channel.send( 'Your range is: {} --- {}'.format(az_game.left, az_game.right))
+            az_game.right = guessIndex
+        await message.channel.send( 'Your range is: {} --- {}'.format(az_game.wordlist[az_game.left], az_game.wordlist[az_game.right]))
 
 async def check_string(w):
     global az_game
     if (' ' not in w):                  
-        with open(az_game.wordlist) as f:
-            #print('Iterating...')
-            for line in f:                  
-                if w.strip().lower() == line.strip().lower():
-                    #print(line)
-                    return True
+        for line in az_game.wordlist:                  
+            if w.strip().lower() == line.strip().lower():
+                #print(line)
+                return True
     return False
 
           
