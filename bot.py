@@ -387,7 +387,7 @@ async def charaSwitchCMD(ctx, *, characterName):
 
 @bot.command(name = "endArc", pass_context=True)
 async def embedCMD(ctx):
-    embedVar = discord.Embed(title="End of Arc 0",  color=0xafffff)
+    embedVar = discord.Embed(title="End of NecoArc",  color=0xafffff)
     img = ""
     lucky = random.randint(0,101)
     if lucky<=10:
