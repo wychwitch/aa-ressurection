@@ -391,9 +391,9 @@ async def embedCMD(ctx):
     img = ""
     lucky = random.randint(0,101)
     if lucky<=10:
-        img = "https://file.garden/ZE8CPfVXdRSd8deb/necoarc.gif"
-    else:
         img = "https://file.garden/ZE8CPfVXdRSd8deb/necoarc.jpg"
+    else:
+        img = "https://file.garden/ZE8CPfVXdRSd8deb/necoarc.gif"
     embedVar.set_image(url=img)
     await ctx.send(embed=embedVar)
 
