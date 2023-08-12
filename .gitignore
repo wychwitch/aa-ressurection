@@ -3,3 +3,6 @@ testing/
 json/*
 __pycache__/
 .vscode/
+venv/*
+!json/cards
+!json/tarot.json

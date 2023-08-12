@@ -51,6 +51,11 @@ with open("json/pings.json") as pings_file:
 with open("json/az_scores.json") as az_scores_file:
     az_scores = json.load(az_scores_file)
 
+# Tarot
+with open("json/tarot.json") as tarot_file:
+    tarot_list = json.load(tarot_file)
+
+
 DndAssets.init()
 
 
@@ -1244,7 +1249,67 @@ def intTryParse(value):
 
 
 
+@bot.group(aliases=["tarot", "t"], pass_context=True)
+async def tarotCMD(ctx, cardNum = "3"):
+    """Tarot!
 
+    Running the command without any arguments will display a random card.
+    """
+    maybeInt = int(cardNum) if cardNum.isdecimal() else None
+    
+    if maybeInt:
+        if maybeInt > 10:
+            maybeInt = 10
+        cards = draw_spread(maybeInt)
+        print(cards)
+        spread = format_cards(cards)
+        await ctx.channel.send(embed=spread[0], files=spread[1])
+    else:
+        await ctx.channel.send(f"{cardNum} is not an int")
+
+
+#@tarot.command(name="add", aliases=["new", "create" "a"])
+#async def tarot_other(ctx,name, *, body: str):
+#    print("ada")
+
+def draw_spread(num):
+    tarot_copy = tarot_list.copy()
+    cards = []
+    for i in range(0, num):
+        cards.append(tarot_copy.pop(random.randint(0,len(tarot_copy))))
+    return cards
+
+def format_cards(cards):
+    images: list[discord.File]  = []
+    files_to_read: list[str] = []
+    embedVar = discord.Embed(title="Spread",  color=0xafffff)
+    #embedVar.set_image(url=)
+    for i in range(0, len(cards)):
+        coinFlip = random.randint(0,1)
+        name = ""
+        nameMod = ""
+        meanings_value = ""
+        keywords = ""
+        meaning = ""
+        value = ""
+        if coinFlip == 0:
+            meanings_value = "light"
+        else:
+            meanings_value = "shadow"
+            nameMod = "Reversed "
+            
+        name = nameMod + cards[i]["name"].capitalize()
+        keywords = ", ".join(cards[i]["keywords"])
+        meaning = cards[i]["meanings"][meanings_value][random.randint(0,len(cards[i]["meanings"][meanings_value]))]
+        value = f"**Keywords**\n{keywords}\n\n**Potential {nameMod}Meaning**\n{meaning}"
+
+        embedVar.add_field(name=name, value=value)
+        files_to_read.append(cards[i]["img"])
+        
+    for filename in files_to_read:
+        with open(filename, 'rb') as f:  # discord file objects must be opened in binary and read mode
+            images.append(discord.File(f))
+    return embedVar, images
 
 
 
