@@ -1293,15 +1293,14 @@ def format_cards(cards):
         meaning = ""
         value = ""
         if coinFlip == 0:
-            meanings_value = "light"
+            meanings_value = "upright"
         else:
-            meanings_value = "shadow"
+            meanings_value = "reversed"
             nameMod = "Reversed "
             
         name = nameMod + cards[i]["name"].capitalize()
-        keywords = ", ".join(cards[i]["keywords"])
-        meaning = cards[i]["meanings"][meanings_value][random.randint(0,len(cards[i]["meanings"][meanings_value]))]
-        value = f"**Keywords**\n{keywords}\n\n**Potential {nameMod}Meaning**\n{meaning}"
+        keywords = ", ".join(cards[i]["meanings"][meanings_value])
+        value = f"**{nameMod}Keywords**\n{keywords}\n\n"
 
         embedVar.add_field(name=name, value=value)
         files_to_read.append(cards[i]["img"])
