@@ -1276,7 +1276,7 @@ def draw_spread(num):
     tarot_copy = tarot_list.copy()
     cards = []
     for i in range(0, num):
-        cards.append(tarot_copy.pop(random.randint(0,len(tarot_copy))))
+        cards.append(tarot_copy.pop(random.randint(0,len(tarot_copy)-1)))
     return cards
 
 def format_cards(cards, question=""):
