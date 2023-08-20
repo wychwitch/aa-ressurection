@@ -1258,8 +1258,8 @@ async def tarotCMD(ctx, cardNum = "3"):
     maybeInt = int(cardNum) if cardNum.isdecimal() else None
     
     if maybeInt:
-        if maybeInt > 10:
-            maybeInt = 10
+        if maybeInt > 9:
+            maybeInt = 9
         cards = draw_spread(maybeInt)
         print(cards)
         spread = format_cards(cards)
@@ -1279,10 +1279,13 @@ def draw_spread(num):
         cards.append(tarot_copy.pop(random.randint(0,len(tarot_copy))))
     return cards
 
-def format_cards(cards):
+def format_cards(cards, question=""):
     images: list[discord.File]  = []
     files_to_read: list[str] = []
-    embedVar = discord.Embed(title="Spread",  color=0xafffff)
+    title = "Spread"
+    if question != "":
+        title = f'Spread for "{question}"'
+    embedVar = discord.Embed(title=title,  color=0xafffff)
     #embedVar.set_image(url=)
     for i in range(0, len(cards)):
         coinFlip = random.randint(0,1)

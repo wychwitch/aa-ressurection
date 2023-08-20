@@ -2187,7 +2187,8 @@
                 "living off others",
                 "termination"
             ]
-        }
+        },
+        "img": "json/cards/p09.jpg"
     },
     {
         "name": "Ten of Coins",
@@ -2214,7 +2215,9 @@
                 "lack of stability",
                 "lack of resources"
             ]
-        }
+        },
+        "img": "json/cards/p10.jpg"
+
     },
     {
         "name": "Page of Coins",
@@ -2240,7 +2243,9 @@
                 "greediness",
                 "laziness"
             ]
-        }
+        },
+        "img": "json/cards/p11.jpg"
+
     },
     {
         "name": "Knight of Coins",
@@ -2270,7 +2275,9 @@
                 "work without reward",
                 "feeling overwhelmed"
             ]
-        }
+        },
+        "img": "json/cards/p12.jpg"
+
     },
     {
         "name": "Queen of Coins",
@@ -2297,7 +2304,9 @@
                 "self care",
                 "financially dependent"
             ]
-        }
+        },
+        "img": "json/cards/p13.jpg"
+
     },
     {
         "name": "King of Coins",
@@ -2325,6 +2334,8 @@
                 "stubborn",
                 "indulgence"
             ]
-        }
+        },
+        "img": "json/cards/p14.jpg"
+
     }
 ]
