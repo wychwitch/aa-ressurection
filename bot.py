@@ -1303,7 +1303,10 @@ def format_cards(cards):
         value = f"**{nameMod}Keywords**\n{keywords}\n\n"
 
         embedVar.add_field(name=name, value=value)
-        files_to_read.append(cards[i]["img"])
+        try:
+            files_to_read.append(cards[i]["img"])
+        except:
+            print(f"\n\n\nTHE FOLLOWING CARD IS HAVING ISSUES\n{cards[i]}\n\n\n")
         
     for filename in files_to_read:
         with open(filename, 'rb') as f:  # discord file objects must be opened in binary and read mode
