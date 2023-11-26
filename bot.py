@@ -1265,8 +1265,8 @@ async def tarotCMD(ctx, cardNum = "3"):
     maybeInt = int(cardNum) if cardNum.isdecimal() else None
     
     if maybeInt:
-        if maybeInt > 10:
-            maybeInt = 10
+        if maybeInt > 9:
+            maybeInt = 9
         cards = draw_spread(maybeInt)
         print(cards)
         spread = format_cards(cards)
@@ -1283,13 +1283,16 @@ def draw_spread(num):
     tarot_copy = tarot_list.copy()
     cards = []
     for i in range(0, num):
-        cards.append(tarot_copy.pop(random.randint(0,len(tarot_copy))))
+        cards.append(tarot_copy.pop(random.randint(0,len(tarot_copy)-1)))
     return cards
 
-def format_cards(cards):
+def format_cards(cards, question=""):
     images: list[discord.File]  = []
     files_to_read: list[str] = []
-    embedVar = discord.Embed(title="Spread",  color=0xafffff)
+    title = "Spread"
+    if question != "":
+        title = f'Spread for "{question}"'
+    embedVar = discord.Embed(title=title,  color=0xafffff)
     #embedVar.set_image(url=)
     for i in range(0, len(cards)):
         coinFlip = random.randint(0,1)
@@ -1300,18 +1303,20 @@ def format_cards(cards):
         meaning = ""
         value = ""
         if coinFlip == 0:
-            meanings_value = "light"
+            meanings_value = "upright"
         else:
-            meanings_value = "shadow"
+            meanings_value = "reversed"
             nameMod = "Reversed "
             
         name = nameMod + cards[i]["name"].capitalize()
-        keywords = ", ".join(cards[i]["keywords"])
-        meaning = cards[i]["meanings"][meanings_value][random.randint(0,len(cards[i]["meanings"][meanings_value]))]
-        value = f"**Keywords**\n{keywords}\n\n**Potential {nameMod}Meaning**\n{meaning}"
+        keywords = ", ".join(cards[i]["meanings"][meanings_value])
+        value = f"**{nameMod}Keywords**\n{keywords}\n\n"
 
         embedVar.add_field(name=name, value=value)
-        files_to_read.append(cards[i]["img"])
+        try:
+            files_to_read.append(cards[i]["img"])
+        except:
+            print(f"\n\n\nTHE FOLLOWING CARD IS HAVING ISSUES\n{cards[i]}\n\n\n")
         
     for filename in files_to_read:
         with open(filename, 'rb') as f:  # discord file objects must be opened in binary and read mode
