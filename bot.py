@@ -742,7 +742,7 @@ async def az_end(ctx):
     global az_game
     if (az_game):
         await ctx.channel.send("Now closing az game, the answer was " + az_game.wordlist[az_game.answer])
-        if "poke" in az_game.wordlist:
+        if "pikachu" in az_game.wordlist:
             await ctx.channel.send('http://bulbapedia.bulbagarden.net/wiki/'+az_game.wordlist[az_game.answer])
         else:
             await ctx.channel.send('http://www.merriam-webster.com/dictionary/'+az_game.wordlist[az_game.answer])
@@ -756,6 +756,7 @@ async def update_az_game(bot, message):
     print("in az loop")
     global az_game
     global config
+    global az_scores
     # az game ignores messages with multiple words/has spaces
     if (not az_game or config["prefix"] in message.content):
         return
@@ -767,7 +768,7 @@ async def update_az_game(bot, message):
     if (guess == az_game.wordlist[az_game.answer]):
         player_score = await add_score(message.author)
         await message.channel.send( "The answer was {answer}. {player} wins! {player} has won {wins} times.".format(answer=az_game.wordlist[az_game.answer], player=message.author.name, wins=player_score))
-        if "poke" in az_game.wordlist:
+        if "p" in az_game.wordlist:
             await message.channel.send('http://bulbapedia.bulbagarden.net/wiki/'+az_game.wordlist[az_game.answer])
         else:
             await message.channel.send("http://www.merriam-webster.com/dictionary/" + az_game.wordlist[az_game.answer])
@@ -792,27 +793,31 @@ async def check_string(w):
 @az.command(name = "top", pass_context = True, description="list the top three player of az")
 async def az_top(ctx):
     global az_scores
+
     scoreStr= "\n         :star: Top 3 Players :star: \n\n"
     top_players = sorted(az_scores, key=az_scores.get, reverse=True)[:3]
     #print(top_players)
     for rank, top_player in enumerate(top_players):
         #print(scoreStr)
-        player = discord.utils.find(lambda m: m.id == int(top_player), ctx.message.channel.server.members)
+        player = discord.utils.find(lambda m: m.id == int(top_player), ctx.message.channel.guild.members)
         if (player):
             scoreStr += " :military_medal:  #{}: {} won {} times\n".format(rank+1, player.name, az_scores[top_player])
     await ctx.channel.send(scoreStr)
 
 @az.command(name = "score", pass_context = True, description="give the numberof times someone has beat the game")  
-async def az_score(ctx, *, msg:str):
+async def az_score(ctx):
     global az_scores
     scoreStr = ""
     sorted_mentions = sorted(ctx.message.mentions, key=lambda x: x.name.lower())
     #print(", ".join([m.name for m in sorted_mentions]))
-    for player in sorted_mentions:
-        if player.id in az_scores:
-            scoreStr+="{} - {} wins\n".format(player.name, az_scores[player.id])
-        else:
-            scoreStr+="{} - 0 wins\n".format(player.name)
+    if len(sorted_mentions) == 0:
+        scoreStr+="{} - {} wins\n".format(ctx.author.name, az_scores[str(ctx.author.id)])
+    else:
+        for player in sorted_mentions:
+            if player.id in az_scores:
+                scoreStr+="{} - {} wins\n".format(player.name, az_scores[str(player.id)])
+            else:
+                scoreStr+="{} - 0 wins\n".format(player.name)
     await ctx.channel.send(scoreStr)            
 
 @az.command(name="pokelist", description="the list of pokemon the bot uses")
@@ -820,12 +825,14 @@ async def az_pokelist(ctx):
     await ctx.channel.send(AZGame.poke_list_url)
 
 async def add_score(user):
-    if user.id in az_scores:
-        az_scores[user.id] += 1
+    global az_scores
+    userId = str(user.id)
+    if userId in az_scores:
+        az_scores[userId] += 1
     else:
-        az_scores[user.id] = 1
+        az_scores[userId] = 1
     update_db(az_scores, "az_scores.json")
-    return az_scores[user.id]
+    return az_scores[userId]
 
 
 
