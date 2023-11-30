@@ -371,7 +371,7 @@
             ]
         },
         "img": "json/cards/m12.jpg",
-        "rev_img": "json/reversed_cards/m12.jpg",
+        "rev_img": "json/reversed_cards/m12.jpg"
     },
     {
         "name": "Death",
@@ -405,7 +405,7 @@
             ]
         },
         "img": "json/cards/m13.jpg",
-        "rev_img": "json/reversed_cards/m13.jpg",
+        "rev_img": "json/reversed_cards/m13.jpg"
     },
     {
         "name": "Temperance",
@@ -438,7 +438,7 @@
             ]
         },
         "img": "json/cards/m14.jpg",
-        "rev_img": "json/reversed_cards/m14.jpg",
+        "rev_img": "json/reversed_cards/m14.jpg"
     },
     {
         "name": "The Devil",
@@ -473,7 +473,7 @@
             ]
         },
         "img": "json/cards/m15.jpg",
-        "rev_img": "json/reversed_cards/m15.jpg",
+        "rev_img": "json/reversed_cards/m15.jpg"
     },
     {
         "name": "The Tower",
@@ -502,7 +502,7 @@
             ]
         },
         "img": "json/cards/m16.jpg",
-        "rev_img": "json/reversed_cards/m16.jpg",
+        "rev_img": "json/reversed_cards/m16.jpg"
     },
     {
         "name": "The Star",
@@ -596,7 +596,7 @@
             ]
         },
         "img": "json/cards/m19.jpg",
-        "rev_img": "json/reversed_cards/m19.jpg",
+        "rev_img": "json/reversed_cards/m19.jpg"
     },
     {
         "name": "Judgement",
@@ -625,7 +625,7 @@
             ]
         },
         "img": "json/cards/m20.jpg",
-        "rev_img": "json/reversed_cards/m20.jpg",
+        "rev_img": "json/reversed_cards/m20.jpg"
     },
     {
         "name": "The World",
@@ -658,7 +658,7 @@
             ]
         },
         "img": "json/cards/m21.jpg",
-        "rev_img": "json/reversed_cards/m21.jpg",
+        "rev_img": "json/reversed_cards/m21.jpg"
     },
     {
         "name": "Ace of Wands",
@@ -690,7 +690,7 @@
             ]
         },
         "img": "json/cards/w01.jpg",
-        "rev_img": "json/reversed_cards/w01.jpg",
+        "rev_img": "json/reversed_cards/w01.jpg"
     },
     {
         "name": "Two of Wands",
@@ -723,7 +723,7 @@
             ]
         },
         "img": "json/cards/w02.jpg",
-        "rev_img": "json/reversed_cards/w02.jpg",
+        "rev_img": "json/reversed_cards/w02.jpg"
     },
     {
         "name": "Three of Wands",
@@ -759,7 +759,7 @@
             ]
         },
         "img": "json/cards/w03.jpg",
-        "rev_img": "json/reversed_cards/w03.jpg",
+        "rev_img": "json/reversed_cards/w03.jpg"
     },
     {
         "name": "Four of Wands",
@@ -792,7 +792,7 @@
             ]
         },
         "img": "json/cards/w04.jpg",
-        "rev_img": "json/reversed_cards/w04.jpg",
+        "rev_img": "json/reversed_cards/w04.jpg"
     },
     {
         "name": "Five of Wands",
@@ -824,7 +824,7 @@
             ]
         },
         "img": "json/cards/w05.jpg",
-        "rev_img": "json/reversed_cards/w05.jpg",
+        "rev_img": "json/reversed_cards/w05.jpg"
     },
     {
         "name": "Six of Wands",
@@ -857,7 +857,7 @@
             ]
         },
         "img": "json/cards/w06.jpg",
-        "rev_img": "json/reversed_cards/w06.jpg",
+        "rev_img": "json/reversed_cards/w06.jpg"
     },
     {
         "name": "Seven of Wands",
@@ -891,7 +891,7 @@
             ]
         },
         "img": "json/cards/w07.jpg",
-        "rev_img": "json/reversed_cards/w07.jpg",
+        "rev_img": "json/reversed_cards/w07.jpg"
     },
     {
         "name": "Eight of Wands",
@@ -922,7 +922,7 @@
             ]
         },
         "img": "json/cards/w08.jpg",
-        "rev_img": "json/reversed_cards/w08.jpg",
+        "rev_img": "json/reversed_cards/w08.jpg"
     },
     {
         "name": "Nine of Wands",
@@ -956,7 +956,7 @@
             ]
         },
         "img": "json/cards/w09.jpg",
-        "rev_img": "json/reversed_cards/w09.jpg",
+        "rev_img": "json/reversed_cards/w09.jpg"
     },
     {
         "name": "Ten of Wands",
@@ -990,7 +990,7 @@
             ]
         },
         "img": "json/cards/w10.jpg",
-        "rev_img": "json/reversed_cards/w10.jpg",
+        "rev_img": "json/reversed_cards/w10.jpg"
     },
     {
         "name": "Page of Wands",
@@ -1022,7 +1022,7 @@
             ]
         },
         "img": "json/cards/w11.jpg",
-        "rev_img": "json/reversed_cards/w11.jpg",
+        "rev_img": "json/reversed_cards/w11.jpg"
     },
     {
         "name": "Knight of Wands",
@@ -1060,7 +1060,7 @@
             ]
         },
         "img": "json/cards/w12.jpg",
-        "rev_img": "json/reversed_cards/w12.jpg",
+        "rev_img": "json/reversed_cards/w12.jpg"
     },
     {
         "name": "Queen of Wands",
@@ -1093,7 +1093,7 @@
             ]
         },
         "img": "json/cards/w13.jpg",
-        "rev_img": "json/reversed_cards/w13.jpg",
+        "rev_img": "json/reversed_cards/w13.jpg"
     },
     {
         "name": "King of Wands",
@@ -1125,7 +1125,7 @@
             ]
         },
         "img": "json/cards/w14.jpg",
-        "rev_img": "json/reversed_cards/w14.jpg",
+        "rev_img": "json/reversed_cards/w14.jpg"
     },
     {
         "name": "Ace of Cups",
@@ -1156,7 +1156,7 @@
             ]
         },
         "img": "json/cards/c01.jpg",
-        "rev_img": "json/reversed_cards/c01.jpg",
+        "rev_img": "json/reversed_cards/c01.jpg"
     },
     {
         "name": "Two of Cups",
@@ -1189,7 +1189,7 @@
             ]
         },
         "img": "json/cards/c02.jpg",
-        "rev_img": "json/reversed_cards/c02.jpg",
+        "rev_img": "json/reversed_cards/c02.jpg"
     },
     {
         "name": "Three of Cups",
@@ -1225,7 +1225,7 @@
             ]
         },
         "img": "json/cards/c03.jpg",
-        "rev_img": "json/reversed_cards/c03.jpg",
+        "rev_img": "json/reversed_cards/c03.jpg"
     },
     {
         "name": "Four of Cups",
@@ -1257,7 +1257,7 @@
             ]
         },
         "img": "json/cards/c04.jpg",
-        "rev_img": "json/reversed_cards/c04.jpg",
+        "rev_img": "json/reversed_cards/c04.jpg"
     },
     {
         "name": "Five of Cups",
@@ -1291,7 +1291,7 @@
             ]
         },
         "img": "json/cards/c05.jpg",
-        "rev_img": "json/reversed_cards/c05.jpg",
+        "rev_img": "json/reversed_cards/c05.jpg"
     },
     {
         "name": "Six of Cups",
@@ -1321,7 +1321,7 @@
             ]
         },
         "img": "json/cards/c06.jpg",
-        "rev_img": "json/reversed_cards/c06.jpg",
+        "rev_img": "json/reversed_cards/c06.jpg"
     },
     {
         "name": "Seven of Cups",
@@ -1353,7 +1353,7 @@
             ]
         },
         "img": "json/cards/c07.jpg",
-        "rev_img": "json/reversed_cards/c07.jpg",
+        "rev_img": "json/reversed_cards/c07.jpg"
     },
     {
         "name": "Eight of Cups",
@@ -1384,7 +1384,7 @@
             ]
         },
         "img": "json/cards/c08.jpg",
-        "rev_img": "json/reversed_cards/c08.jpg",
+        "rev_img": "json/reversed_cards/c08.jpg"
     },
     {
         "name": "Nine of Cups",
@@ -1419,7 +1419,7 @@
             ]
         },
         "img": "json/cards/c09.jpg",
-        "rev_img": "json/reversed_cards/c09.jpg",
+        "rev_img": "json/reversed_cards/c09.jpg"
     },
     {
         "name": "Ten of Cups",
@@ -1450,7 +1450,7 @@
             ]
         },
         "img": "json/cards/c10.jpg",
-        "rev_img": "json/reversed_cards/c10.jpg",
+        "rev_img": "json/reversed_cards/c10.jpg"
     },
     {
         "name": "Page of Cups",
@@ -1479,7 +1479,7 @@
             ]
         },
         "img": "json/cards/c11.jpg",
-        "rev_img": "json/reversed_cards/c11.jpg",
+        "rev_img": "json/reversed_cards/c11.jpg"
     },
     {
         "name": "Knight of Cups",
@@ -1508,7 +1508,7 @@
             ]
         },
         "img": "json/cards/c12.jpg",
-        "rev_img": "json/reversed_cards/c12.jpg",
+        "rev_img": "json/reversed_cards/c12.jpg"
     },
     {
         "name": "Queen of Cups",
@@ -1541,7 +1541,7 @@
             ]
         },
         "img": "json/cards/c13.jpg",
-        "rev_img": "json/reversed_cards/c13.jpg",
+        "rev_img": "json/reversed_cards/c13.jpg"
     },
     {
         "name": "King of Cups",
@@ -1573,7 +1573,7 @@
             ]
         },
         "img": "json/cards/c14.jpg",
-        "rev_img": "json/reversed_cards/c14.jpg",
+        "rev_img": "json/reversed_cards/c14.jpg"
     },
     {
         "name": "Ace of Swords",
@@ -1632,7 +1632,7 @@
             ]
         },
         "img": "json/cards/s02.jpg",
-        "rev_img": "json/reversed_cards/s02.jpg",
+        "rev_img": "json/reversed_cards/s02.jpg"
     },
     {
         "name": "Three of Swords",
@@ -1663,7 +1663,7 @@
             ]
         },
         "img": "json/cards/s03.jpg",
-        "rev_img": "json/reversed_cards/s03.jpg",
+        "rev_img": "json/reversed_cards/s03.jpg"
     },
     {
         "name": "Four of Swords",
@@ -1695,7 +1695,7 @@
             ]
         },
         "img": "json/cards/s04.jpg",
-        "rev_img": "json/reversed_cards/s04.jpg",
+        "rev_img": "json/reversed_cards/s04.jpg"
     },
     {
         "name": "Five of Swords",
@@ -1726,7 +1726,7 @@
             ]
         },
         "img": "json/cards/s05.jpg",
-        "rev_img": "json/reversed_cards/s05.jpg",
+        "rev_img": "json/reversed_cards/s05.jpg"
     },
     {
         "name": "Six of Swords",
@@ -1755,7 +1755,7 @@
             ]
         },
         "img": "json/cards/s06.jpg",
-        "rev_img": "json/reversed_cards/s06.jpg",
+        "rev_img": "json/reversed_cards/s06.jpg"
     },
     {
         "name": "Seven of Swords",
@@ -1787,7 +1787,7 @@
             ]
         },
         "img": "json/cards/s07.jpg",
-        "rev_img": "json/reversed_cards/s07.jpg",
+        "rev_img": "json/reversed_cards/s07.jpg"
     },
     {
         "name": "Eight of Swords",
@@ -1815,7 +1815,7 @@
             ]
         },
         "img": "json/cards/s08.jpg",
-        "rev_img": "json/reversed_cards/s08.jpg",
+        "rev_img": "json/reversed_cards/s08.jpg"
     },
     {
         "name": "Nine of Swords",
@@ -1846,7 +1846,7 @@
             ]
         },
         "img": "json/cards/s09.jpg",
-        "rev_img": "json/reversed_cards/s09.jpg",
+        "rev_img": "json/reversed_cards/s09.jpg"
     },
     {
         "name": "Ten of Swords",
@@ -1876,7 +1876,7 @@
             ]
         },
         "img": "json/cards/s10.jpg",
-        "rev_img": "json/reversed_cards/s10.jpg",
+        "rev_img": "json/reversed_cards/s10.jpg"
     },
     {
         "name": "Page of Swords",
@@ -1904,7 +1904,7 @@
             ]
         },
         "img": "json/cards/s11.jpg",
-        "rev_img": "json/reversed_cards/s11.jpg",
+        "rev_img": "json/reversed_cards/s11.jpg"
     },
     {
         "name": "Knight of Swords",
@@ -1932,7 +1932,7 @@
             ]
         },
         "img": "json/cards/s12.jpg",
-        "rev_img": "json/reversed_cards/s12.jpg",
+        "rev_img": "json/reversed_cards/s12.jpg"
     },
     {
         "name": "Queen of Swords",
@@ -1963,7 +1963,7 @@
             ]
         },
         "img": "json/cards/s13.jpg",
-        "rev_img": "json/reversed_cards/s13.jpg",
+        "rev_img": "json/reversed_cards/s13.jpg"
     },
     {
         "name": "King of Swords",
@@ -1994,7 +1994,7 @@
             ]
         },
         "img": "json/cards/s14.jpg",
-        "rev_img": "json/reversed_cards/s14.jpg",
+        "rev_img": "json/reversed_cards/s14.jpg"
     },
     {
         "name": "Ace of Coins",
@@ -2024,7 +2024,7 @@
             ]
         },
         "img": "json/cards/p01.jpg",
-        "rev_img": "json/reversed_cards/p01.jpg",
+        "rev_img": "json/reversed_cards/p01.jpg"
     },
     {
         "name": "Two of Coins",
@@ -2053,7 +2053,7 @@
             ]
         },
         "img": "json/cards/p02.jpg",
-        "rev_img": "json/reversed_cards/p02.jpg",
+        "rev_img": "json/reversed_cards/p02.jpg"
     },
     {
         "name": "Three of Coins",
@@ -2081,7 +2081,7 @@
             ]
         },
         "img": "json/cards/p03.jpg",
-        "rev_img": "json/reversed_cards/p03.jpg",
+        "rev_img": "json/reversed_cards/p03.jpg"
     },
     {
         "name": "Four of Coins",
@@ -2142,7 +2142,7 @@
             ]
         },
         "img": "json/cards/p05.jpg",
-        "rev_img": "json/reversed_cards/p05.jpg",
+        "rev_img": "json/reversed_cards/p05.jpg"
     },
     {
         "name": "Six of Coins",
@@ -2172,7 +2172,7 @@
             ]
         },
         "img": "json/cards/p06.jpg",
-        "rev_img": "json/reversed_cards/p06.jpg",
+        "rev_img": "json/reversed_cards/p06.jpg"
     },
     {
         "name": "Seven of Coins",
@@ -2202,7 +2202,7 @@
             ]
         },
         "img": "json/cards/p07.jpg",
-        "rev_img": "json/reversed_cards/p07.jpg",
+        "rev_img": "json/reversed_cards/p07.jpg"
     },
     {
         "name": "Eight of Coins",
@@ -2231,7 +2231,7 @@
             ]
         },
         "img": "json/cards/p08.jpg",
-        "rev_img": "json/reversed_cards/p08.jpg",
+        "rev_img": "json/reversed_cards/p08.jpg"
     },
     {
         "name": "Nine of Coins",
@@ -2261,7 +2261,7 @@
             ]
         },
         "img": "json/cards/p09.jpg",
-        "rev_img": "json/reversed_cards/p09.jpg",
+        "rev_img": "json/reversed_cards/p09.jpg"
     },
     {
         "name": "Ten of Coins",
@@ -2290,7 +2290,7 @@
             ]
         },
         "img": "json/cards/p10.jpg",
-        "rev_img": "json/reversed_cards/p10.jpg",
+        "rev_img": "json/reversed_cards/p10.jpg"
 
     },
     {
@@ -2319,7 +2319,7 @@
             ]
         },
         "img": "json/cards/p11.jpg",
-        "rev_img": "json/reversed_cards/p11.jpg",
+        "rev_img": "json/reversed_cards/p11.jpg"
 
     },
     {
@@ -2352,7 +2352,7 @@
             ]
         },
         "img": "json/cards/p12.jpg",
-        "rev_img": "json/reversed_cards/p12.jpg",
+        "rev_img": "json/reversed_cards/p12.jpg"
 
     },
     {
@@ -2382,7 +2382,7 @@
             ]
         },
         "img": "json/cards/p13.jpg",
-        "rev_img": "json/reversed_cards/p13.jpg",
+        "rev_img": "json/reversed_cards/p13.jpg"
 
     },
     {
