@@ -5,5 +5,6 @@ __pycache__/
 .vscode/
 venv/*
 !json/cards
+!json/reversed_cards
 !json/tarot.json
 json/config.json
