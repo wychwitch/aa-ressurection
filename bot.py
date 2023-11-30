@@ -1257,7 +1257,7 @@ def intTryParse(value):
 
 
 @bot.group(aliases=["tarot", "t"], pass_context=True)
-async def tarotCMD(ctx, cardNum = "3"):
+async def tarotCMD(ctx, cardNum = "1"):
     """Tarot!
 
     Running the command without any arguments will display a random card.
