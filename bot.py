@@ -1302,11 +1302,14 @@ def format_cards(cards, question=""):
         keywords = ""
         meaning = ""
         value = ""
+        img = ""
         if coinFlip == 0:
             meanings_value = "upright"
+            img = cards[i]["img"]
         else:
             meanings_value = "reversed"
             nameMod = "Reversed "
+            img = cards[i]["rev_img"]
             
         name = nameMod + cards[i]["name"].capitalize()
         keywords = ", ".join(cards[i]["meanings"][meanings_value])
@@ -1314,7 +1317,7 @@ def format_cards(cards, question=""):
 
         embedVar.add_field(name=name, value=value)
         try:
-            files_to_read.append(cards[i]["img"])
+            files_to_read.append(img)
         except:
             print(f"\n\n\nTHE FOLLOWING CARD IS HAVING ISSUES\n{cards[i]}\n\n\n")
         
