@@ -142,13 +142,7 @@ async def on_message(message):
 
 async def check_pings(bot, message):
     global pings_dict
-    #print("client users:", bot.users)
-    #print("Message text: ",message.content)
-    #print("Message Channel Name: ",message.channel.name)
 
-    #print("\n".join(["{}: {}".format(m.name, m.id) for m in message.channel.guild.members]))
-
-    #print("\n second members check: ",message.channel.guild.members)
     lower_text = message.content.lower()
     for user_id, ping_triggers in pings_dict.items():
         trigger_regexes = ["\\b"+trigger+"\\b" for trigger in ping_triggers]
@@ -789,7 +783,6 @@ async def check_string(w):
             return True
     return False
 
-          
 @az.command(name = "top", pass_context = True, description="list the top three player of az")
 async def az_top(ctx):
     global az_scores
@@ -1188,7 +1181,6 @@ class blindPokemon:
         i = random.randrange(self.pokeRangeInt[0], self.pokeRangeInt[1])
         
         self.pokemon = pokebase.pokemon(i)
-        #self.pokemon = pokebase.pokemon("meowth")
 
         if(len(self.pokemon.species.varieties) > 1):
             i = random.randint(0,len(self.pokemon.species.varieties)-1)
@@ -1257,12 +1249,12 @@ def intTryParse(value):
 
 
 @bot.group(aliases=["tarot", "t"], pass_context=True)
-async def tarotCMD(ctx, cardNum = "1"):
+async def tarotCMD(ctx, *, argument = "1"):
     """Tarot!
 
     Running the command without any arguments will display a random card.
     """
-    maybeInt = int(cardNum) if cardNum.isdecimal() else None
+    maybeInt = int(argument) if argument.isdecimal() else None
     
     if maybeInt:
         if maybeInt > 9:
@@ -1272,7 +1264,13 @@ async def tarotCMD(ctx, cardNum = "1"):
         spread = format_cards(cards)
         await ctx.channel.send(embed=spread[0], files=spread[1])
     else:
-        await ctx.channel.send(f"{cardNum} is not an int")
+        split_arg = list(argument.split(" "))
+        print(len(split_arg))
+        last_indx = split_arg[-1]
+        num_of_cards = int(last_indx) if last_indx.isdecimal() else 1
+        cards = draw_spread(num_of_cards)
+        spread = format_cards(cards, " ".join(split_arg[:-1]))
+        await ctx.channel.send(embed=spread[0], files=spread[1])
 
 
 #@tarot.command(name="add", aliases=["new", "create" "a"])
