@@ -672,7 +672,6 @@ def handle_gens(genList):
 class AZGame:
     poke_list_url = "https://pastebin.com/tmqw0xns"
     def __init__(self, string, gens=""):
-        print(gens)
         wordlist = []
         if string.lower() == "az":
             file = ""
@@ -736,10 +735,11 @@ async def az_end(ctx):
     global az_game
     if (az_game):
         await ctx.channel.send("Now closing az game, the answer was " + az_game.wordlist[az_game.answer])
-        if "pikachu" in az_game.wordlist:
-            await ctx.channel.send('http://bulbapedia.bulbagarden.net/wiki/'+az_game.wordlist[az_game.answer])
-        else:
-            await ctx.channel.send('http://www.merriam-webster.com/dictionary/'+az_game.wordlist[az_game.answer])
+        with open("json/pokemon.txt", 'r') as fp:
+            if az_game.wordlist[az_game.answer] in fp.readlines():
+                await ctx.channel.send('http://bulbapedia.bulbagarden.net/wiki/'+az_game.wordlist[az_game.answer])
+            else:
+                await ctx.channel.send('http://www.merriam-webster.com/dictionary/'+az_game.wordlist[az_game.answer])
         
         az_game = None
     else:

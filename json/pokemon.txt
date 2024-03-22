@@ -269,7 +269,7 @@ exeggcute
 exeggutor
 exploud
 falinks
-farfetch’d
+farfetch'd
 farigiraf
 fearow
 feebas
@@ -781,7 +781,7 @@ simipour
 simisage
 simisear
 sinistea
-sirfetch’d
+sirfetch'd
 sizzlipede
 skarmory
 skeledirge
